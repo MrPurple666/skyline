@@ -13,7 +13,8 @@ import emu.skyline.R
 import emu.skyline.input.ButtonId
 import emu.skyline.input.ButtonId.*
 import emu.skyline.input.StickId
-import emu.skyline.input.StickId.*
+import emu.skyline.input.StickId.Left
+import emu.skyline.input.StickId.Right
 import emu.skyline.utils.add
 import emu.skyline.utils.multiply
 import kotlin.math.roundToInt
@@ -248,4 +249,16 @@ class Controls(onScreenControllerView : OnScreenControllerView) {
         set(value) {
             circularButtons.first().config.alpha = value
         }
+
+    /**
+     * We can take any of the global text color variables from the buttons
+     */
+    val globalTextColor
+        get() = circularButtons.first().config.textColor
+
+    /**
+     * We can take any of the global background color variables from the buttons
+     */
+    val globalBGColor
+        get() = circularButtons.first().config.backgroundColor
 }
