@@ -5,6 +5,7 @@
 
 package emu.skyline.input.onscreen
 
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.*
@@ -16,6 +17,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import emu.skyline.R
 import emu.skyline.databinding.OnScreenEditActivityBinding
 import emu.skyline.settings.AppSettings
+import petrov.kristiyan.colorpicker.ColorPicker
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -41,10 +43,11 @@ class OnScreenEditActivity : AppCompatActivity() {
     }
 
     private fun toggleFabVisibility(visible : Boolean) {
-        actions.forEach {
-            if (it.first != R.drawable.ic_close)
-                if (visible) fabMapping[it.first]!!.show()
-                else fabMapping[it.first]!!.hide()
+        fabMapping.forEach { (id, fab) ->
+            if (id != R.drawable.ic_close) {
+                if (visible) fab.show()
+                else fab.hide()
+            }
         }
     }
 
@@ -59,30 +62,30 @@ class OnScreenEditActivity : AppCompatActivity() {
         val checkArray = buttonProps.map { it.second }.toBooleanArray()
 
         MaterialAlertDialogBuilder(this)
-                .setMultiChoiceItems(buttonProps.map {
-                    val longText = getString(it.first.long!!)
-                    if (it.first.short == longText) longText else "$longText: ${it.first.short}"
-                }.toTypedArray(), checkArray) { _, which, isChecked ->
-                    checkArray[which] = isChecked
-                }.setPositiveButton(R.string.confirm) { _, _ ->
-                    buttonProps.forEachIndexed { index, pair ->
-                        if (checkArray[index] != pair.second)
-                            binding.onScreenControllerView.setButtonEnabled(pair.first, checkArray[index])
-                    }
-                }.setNegativeButton(R.string.cancel, null)
-                .setOnDismissListener { fullScreen() }
-                .show()
+            .setMultiChoiceItems(buttonProps.map {
+                val longText = getString(it.first.long!!)
+                if (it.first.short == longText) longText else "$longText: ${it.first.short}"
+            }.toTypedArray(), checkArray) { _, which, isChecked ->
+                checkArray[which] = isChecked
+            }.setPositiveButton(R.string.confirm) { _, _ ->
+                buttonProps.forEachIndexed { index, pair ->
+                    if (checkArray[index] != pair.second)
+                        binding.onScreenControllerView.setButtonEnabled(pair.first, checkArray[index])
+                }
+            }.setNegativeButton(R.string.cancel, null)
+            .setOnDismissListener { fullScreen() }
+            .show()
     }
 
     private val actions : List<Pair<Int, () -> Unit>> = listOf(
-            Pair(R.drawable.ic_restore, { binding.onScreenControllerView.resetControls() }),
-            Pair(R.drawable.ic_toggle, toggleAction),
-            Pair(R.drawable.ic_edit, editAction),
-            Pair(R.drawable.ic_zoom_out, { binding.onScreenControllerView.decreaseScale() }),
-            Pair(R.drawable.ic_zoom_in, { binding.onScreenControllerView.increaseScale() }),
-            Pair(R.drawable.ic_opacity_minus) { binding.onScreenControllerView.decreaseOpacity() },
-            Pair(R.drawable.ic_opacity_plus) { binding.onScreenControllerView.increaseOpacity() },
-            Pair(R.drawable.ic_close, closeAction)
+        Pair(R.drawable.ic_restore) { binding.onScreenControllerView.resetControls() },
+        Pair(R.drawable.ic_toggle, toggleAction),
+        Pair(R.drawable.ic_edit, editAction),
+        Pair(R.drawable.ic_zoom_out) { binding.onScreenControllerView.decreaseScale() },
+        Pair(R.drawable.ic_zoom_in) { binding.onScreenControllerView.increaseScale() },
+        Pair(R.drawable.ic_opacity_minus) { binding.onScreenControllerView.decreaseOpacity() },
+        Pair(R.drawable.ic_opacity_plus) { binding.onScreenControllerView.increaseOpacity() },
+        Pair(R.drawable.ic_close, closeAction)
     )
 
     private val fabMapping = mutableMapOf<Int, FloatingActionButton>()
@@ -105,6 +108,7 @@ class OnScreenEditActivity : AppCompatActivity() {
 
         binding.onScreenControllerView.recenterSticks = appSettings.onScreenControlRecenterSticks
 
+        createPaletteAction()
         actions.forEach { pair ->
             binding.fabParent.addView(LayoutInflater.from(this).inflate(R.layout.on_screen_edit_mini_fab, binding.fabParent, false).apply {
                 (this as FloatingActionButton).setImageDrawable(ContextCompat.getDrawable(context, pair.first))
@@ -112,6 +116,52 @@ class OnScreenEditActivity : AppCompatActivity() {
                 fabMapping[pair.first] = this
             })
         }
+    }
+
+    private fun createPaletteAction() {
+        binding.fabParent.addView(LayoutInflater.from(this).inflate(R.layout.on_screen_edit_mini_fab, binding.fabParent, false).apply {
+            (this as FloatingActionButton).setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_palette))
+            this.setOnCreateContextMenuListener { menu, _, _ ->
+                val textColorButton : MenuItem = menu.add(getString(R.string.osc_text_color))
+                textColorButton.setOnMenuItemClickListener {
+                    ColorPicker(this@OnScreenEditActivity).apply {
+                        setTitle(this@OnScreenEditActivity.getString(R.string.osc_text_color))
+                        setRoundColorButton(true)
+                        setColors(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
+                        setDefaultColorButton(binding.onScreenControllerView.getTextColor())
+                        setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
+                            override fun onChooseColor(position : Int, color : Int) {
+                                binding.onScreenControllerView.setTextColor(color)
+                            }
+
+                            override fun onCancel() {/*Nothing to do*/
+                            }
+                        })
+                    }.show()
+                    true
+                }
+                val backgroundColorButton : MenuItem = menu.add(getString(R.string.osc_background_color))
+                backgroundColorButton.setOnMenuItemClickListener {
+                    ColorPicker(this@OnScreenEditActivity).apply {
+                        setTitle(this@OnScreenEditActivity.getString(R.string.osc_background_color))
+                        setRoundColorButton(true)
+                        setColors(Color.TRANSPARENT, Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
+                        setDefaultColorButton(binding.onScreenControllerView.getBGColor())
+                        setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
+                            override fun onChooseColor(position : Int, color : Int) {
+                                binding.onScreenControllerView.setBGColor(color)
+                            }
+
+                            override fun onCancel() {/*Nothing to do*/
+                            }
+                        })
+                    }.show()
+                    true
+                }
+            }
+            this.setOnClickListener { this.showContextMenu(this.x, this.y + this.height) }
+            fabMapping[R.drawable.ic_palette] = this
+        })
     }
 
     override fun onResume() {

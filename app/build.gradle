@@ -184,6 +184,7 @@ dependencies {
 
     /* Other Java */
     implementation 'info.debatty:java-string-similarity:2.0.0'
+    implementation 'petrov.kristiyan:colorpicker-library:1.1.10'
 }
 
 kapt {
