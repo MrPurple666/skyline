@@ -7,6 +7,7 @@ package emu.skyline.input.onscreen
 
 import android.graphics.Canvas
 import android.graphics.PointF
+import android.graphics.Typeface
 import android.os.SystemClock
 import androidx.core.graphics.minus
 import emu.skyline.R
@@ -65,6 +66,10 @@ class JoystickButton(
     private var fingerUpTime = 0L
     var shortDoubleTapped = false
         private set
+
+    init {
+        innerButton.buttonSymbolPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+    }
 
     override fun renderCenteredText(canvas : Canvas, text : String, size : Float, x : Float, y : Float, alpha : Int) = Unit
 

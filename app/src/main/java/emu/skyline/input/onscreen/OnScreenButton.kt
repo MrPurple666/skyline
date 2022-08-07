@@ -6,9 +6,9 @@
 package emu.skyline.input.onscreen
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
@@ -40,7 +40,11 @@ abstract class OnScreenButton(
 
     protected val drawable = ContextCompat.getDrawable(onScreenControllerView.context, drawableId)!!
 
-    private val buttonSymbolPaint = Paint().apply { color = config.textColor }
+    internal val buttonSymbolPaint = Paint().apply {
+        color = config.textColor
+        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        isAntiAlias = true
+    }
     private val textBoundsRect = Rect()
 
     var relativeX = config.relativeX
