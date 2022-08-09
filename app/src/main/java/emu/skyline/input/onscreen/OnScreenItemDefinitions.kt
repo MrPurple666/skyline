@@ -199,14 +199,14 @@ class TriggerButton(
 
 class Controls(onScreenControllerView : OnScreenControllerView) {
     private val buttonA = CircularButton(onScreenControllerView, A, 0.95f, 0.65f, 0.025f)
-    private val buttonB = CircularButton(onScreenControllerView, B, 0.9f, 0.75f, 0.025f)
-    private val buttonX = CircularButton(onScreenControllerView, X, 0.9f, 0.55f, 0.025f)
+    private val buttonB = CircularButton(onScreenControllerView, B, 0.9f, 0.765f, 0.025f)
+    private val buttonX = CircularButton(onScreenControllerView, X, 0.9f, 0.535f, 0.025f)
     private val buttonY = CircularButton(onScreenControllerView, Y, 0.85f, 0.65f, 0.025f)
 
     private val buttonDpadLeft = CircularButton(onScreenControllerView, DpadLeft, 0.2f, 0.65f, 0.025f)
-    private val buttonDpadUp = CircularButton(onScreenControllerView, DpadUp, 0.25f, 0.55f, 0.025f)
+    private val buttonDpadUp = CircularButton(onScreenControllerView, DpadUp, 0.25f, 0.535f, 0.025f)
     private val buttonDpadRight = CircularButton(onScreenControllerView, DpadRight, 0.3f, 0.65f, 0.025f)
-    private val buttonDpadDown = CircularButton(onScreenControllerView, DpadDown, 0.25f, 0.75f, 0.025f)
+    private val buttonDpadDown = CircularButton(onScreenControllerView, DpadDown, 0.25f, 0.765f, 0.025f)
 
     private val buttonL = RectangularButton(onScreenControllerView, L, 0.1f, 0.25f, 0.09f, 0.1f)
     private val buttonR = RectangularButton(onScreenControllerView, R, 0.9f, 0.25f, 0.09f, 0.1f)
