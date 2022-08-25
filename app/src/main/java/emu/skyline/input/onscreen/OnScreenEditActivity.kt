@@ -9,6 +9,9 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import android.widget.FrameLayout
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -19,6 +22,7 @@ import emu.skyline.databinding.OnScreenEditActivityBinding
 import emu.skyline.utils.PreferenceSettings
 import petrov.kristiyan.colorpicker.ColorPicker
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class OnScreenEditActivity : AppCompatActivity() {
@@ -57,6 +61,9 @@ class OnScreenEditActivity : AppCompatActivity() {
         toggleFabVisibility(false)
     }
 
+    private val textColors = arrayOf(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
+    private val backgroundColors = textColors + arrayOf(Color.TRANSPARENT)
+
     private val toggleAction : () -> Unit = {
         val buttonProps = binding.onScreenControllerView.getButtonProps()
         val checkArray = buttonProps.map { it.second }.toBooleanArray()
@@ -77,7 +84,73 @@ class OnScreenEditActivity : AppCompatActivity() {
             .show()
     }
 
+    private val paletteAction : () -> Unit = {
+        val backgroundColorPicker = createBackgroundColorPicker()
+        val textColorPicker = createTextColorPicker(backgroundColorPicker)
+        mergeColorPickers(textColorPicker, backgroundColorPicker)
+    }
+
+    private fun createBackgroundColorPicker() : ColorPicker {
+        return ColorPicker(this@OnScreenEditActivity).apply {
+            setTitle(this@OnScreenEditActivity.getString(R.string.osc_background_color))
+            setRoundColorButton(true)
+            setColors(*backgroundColors.toIntArray())
+            setDefaultColorButton(binding.onScreenControllerView.getBGColor())
+            positiveButton.visibility = View.GONE
+            negativeButton.visibility = View.GONE
+            setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
+                override fun onChooseColor(position : Int, color : Int) {
+                    binding.onScreenControllerView.setBGColor(backgroundColors[position])
+                }
+
+                override fun onCancel() {/*Nothing to do*/
+                }
+            })
+            show()
+            dismissDialog()
+        }
+    }
+
+    private fun createTextColorPicker(backgroundColorPicker : ColorPicker) : ColorPicker {
+        return ColorPicker(this@OnScreenEditActivity).apply {
+            setTitle(this@OnScreenEditActivity.getString(R.string.osc_text_color))
+            setRoundColorButton(true)
+            setColors(*textColors.toIntArray())
+            setDefaultColorButton(binding.onScreenControllerView.getTextColor())
+            setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
+                override fun onChooseColor(position : Int, color : Int) {
+                    binding.onScreenControllerView.setTextColor(textColors[position])
+                    backgroundColorPicker.positiveButton.performClick()
+                }
+
+                override fun onCancel() {/*Nothing to do*/
+                }
+            })
+            show()
+        }
+    }
+
+    private fun mergeColorPickers(mainColorPicker : ColorPicker, secondColorPicker : ColorPicker) {
+        with(mainColorPicker) {
+            dialogViewLayout.apply {
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.BOTTOM }
+                if (viewTreeObserver.isAlive) {
+                    viewTreeObserver.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
+                        override fun onGlobalLayout() {
+                            viewTreeObserver.removeOnGlobalLayoutListener(this)
+                            getmDialog()!!.window!!.setLayout((width * 1.2).roundToInt(), (height * 1.8).roundToInt())
+                        }
+                    })
+                }
+            }
+            (secondColorPicker.dialogViewLayout.parent as ViewGroup).removeView(secondColorPicker.dialogViewLayout)
+            getmDialog()?.addContentView(secondColorPicker.dialogViewLayout, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        }
+    }
+
+
     private val actions : List<Pair<Int, () -> Unit>> = listOf(
+        Pair(R.drawable.ic_palette, paletteAction),
         Pair(R.drawable.ic_restore) { binding.onScreenControllerView.resetControls() },
         Pair(R.drawable.ic_toggle, toggleAction),
         Pair(R.drawable.ic_edit, editAction),
@@ -108,7 +181,6 @@ class OnScreenEditActivity : AppCompatActivity() {
 
         binding.onScreenControllerView.recenterSticks = preferenceSettings.onScreenControlRecenterSticks
 
-        createPaletteAction()
         actions.forEach { pair ->
             binding.fabParent.addView(LayoutInflater.from(this).inflate(R.layout.on_screen_edit_mini_fab, binding.fabParent, false).apply {
                 (this as FloatingActionButton).setImageDrawable(ContextCompat.getDrawable(context, pair.first))
@@ -116,52 +188,6 @@ class OnScreenEditActivity : AppCompatActivity() {
                 fabMapping[pair.first] = this
             })
         }
-    }
-
-    private fun createPaletteAction() {
-        binding.fabParent.addView(LayoutInflater.from(this).inflate(R.layout.on_screen_edit_mini_fab, binding.fabParent, false).apply {
-            (this as FloatingActionButton).setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_palette))
-            this.setOnCreateContextMenuListener { menu, _, _ ->
-                val textColorButton : MenuItem = menu.add(getString(R.string.osc_text_color))
-                textColorButton.setOnMenuItemClickListener {
-                    ColorPicker(this@OnScreenEditActivity).apply {
-                        setTitle(this@OnScreenEditActivity.getString(R.string.osc_text_color))
-                        setRoundColorButton(true)
-                        setColors(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
-                        setDefaultColorButton(binding.onScreenControllerView.getTextColor())
-                        setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
-                            override fun onChooseColor(position : Int, color : Int) {
-                                binding.onScreenControllerView.setTextColor(color)
-                            }
-
-                            override fun onCancel() {/*Nothing to do*/
-                            }
-                        })
-                    }.show()
-                    true
-                }
-                val backgroundColorButton : MenuItem = menu.add(getString(R.string.osc_background_color))
-                backgroundColorButton.setOnMenuItemClickListener {
-                    ColorPicker(this@OnScreenEditActivity).apply {
-                        setTitle(this@OnScreenEditActivity.getString(R.string.osc_background_color))
-                        setRoundColorButton(true)
-                        setColors(Color.TRANSPARENT, Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
-                        setDefaultColorButton(binding.onScreenControllerView.getBGColor())
-                        setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
-                            override fun onChooseColor(position : Int, color : Int) {
-                                binding.onScreenControllerView.setBGColor(color)
-                            }
-
-                            override fun onCancel() {/*Nothing to do*/
-                            }
-                        })
-                    }.show()
-                    true
-                }
-            }
-            this.setOnClickListener { this.showContextMenu(this.x, this.y + this.height) }
-            fabMapping[R.drawable.ic_palette] = this
-        })
     }
 
     override fun onResume() {
