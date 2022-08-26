@@ -61,8 +61,7 @@ class OnScreenEditActivity : AppCompatActivity() {
         toggleFabVisibility(false)
     }
 
-    private val textColors = arrayOf(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
-    private val backgroundColors = textColors + arrayOf(Color.TRANSPARENT)
+    private val colors = arrayOf(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 230, 255, 0), Color.argb(180, 180, 0, 230), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
 
     private val toggleAction : () -> Unit = {
         val buttonProps = binding.onScreenControllerView.getButtonProps()
@@ -94,13 +93,13 @@ class OnScreenEditActivity : AppCompatActivity() {
         return ColorPicker(this@OnScreenEditActivity).apply {
             setTitle(this@OnScreenEditActivity.getString(R.string.osc_background_color))
             setRoundColorButton(true)
-            setColors(*backgroundColors.toIntArray())
+            setColors(*colors.toIntArray())
             setDefaultColorButton(binding.onScreenControllerView.getBGColor())
             positiveButton.visibility = View.GONE
             negativeButton.visibility = View.GONE
             setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
                 override fun onChooseColor(position : Int, color : Int) {
-                    binding.onScreenControllerView.setBGColor(backgroundColors[position])
+                    binding.onScreenControllerView.setBGColor(colors[position])
                 }
 
                 override fun onCancel() {/*Nothing to do*/
@@ -115,11 +114,11 @@ class OnScreenEditActivity : AppCompatActivity() {
         return ColorPicker(this@OnScreenEditActivity).apply {
             setTitle(this@OnScreenEditActivity.getString(R.string.osc_text_color))
             setRoundColorButton(true)
-            setColors(*textColors.toIntArray())
+            setColors(*colors.toIntArray())
             setDefaultColorButton(binding.onScreenControllerView.getTextColor())
             setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
                 override fun onChooseColor(position : Int, color : Int) {
-                    binding.onScreenControllerView.setTextColor(textColors[position])
+                    binding.onScreenControllerView.setTextColor(colors[position])
                     backgroundColorPicker.positiveButton.performClick()
                 }
 
