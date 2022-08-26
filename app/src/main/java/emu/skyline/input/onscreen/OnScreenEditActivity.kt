@@ -57,6 +57,8 @@ class OnScreenEditActivity : AppCompatActivity() {
         toggleFabVisibility(false)
     }
 
+    private val colors = arrayOf(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 230, 255, 0), Color.argb(180, 180, 0, 230), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
+
     private val toggleAction : () -> Unit = {
         val buttonProps = binding.onScreenControllerView.getButtonProps()
         val checkArray = buttonProps.map { it.second }.toBooleanArray()
@@ -76,6 +78,71 @@ class OnScreenEditActivity : AppCompatActivity() {
             .setOnDismissListener { fullScreen() }
             .show()
     }
+
+    private val paletteAction : () -> Unit = {
+        val backgroundColorPicker = createBackgroundColorPicker()
+        val textColorPicker = createTextColorPicker(backgroundColorPicker)
+        mergeColorPickers(textColorPicker, backgroundColorPicker)
+    }
+
+    private fun createBackgroundColorPicker() : ColorPicker {
+        return ColorPicker(this@OnScreenEditActivity).apply {
+            setTitle(this@OnScreenEditActivity.getString(R.string.osc_background_color))
+            setRoundColorButton(true)
+            setColors(*colors.toIntArray())
+            setDefaultColorButton(binding.onScreenControllerView.getBGColor())
+            positiveButton.visibility = View.GONE
+            negativeButton.visibility = View.GONE
+            setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
+                override fun onChooseColor(position : Int, color : Int) {
+                    binding.onScreenControllerView.setBGColor(colors[position])
+                }
+
+                override fun onCancel() {/*Nothing to do*/
+                }
+            })
+            show()
+            dismissDialog()
+        }
+    }
+
+    private fun createTextColorPicker(backgroundColorPicker : ColorPicker) : ColorPicker {
+        return ColorPicker(this@OnScreenEditActivity).apply {
+            setTitle(this@OnScreenEditActivity.getString(R.string.osc_text_color))
+            setRoundColorButton(true)
+            setColors(*colors.toIntArray())
+            setDefaultColorButton(binding.onScreenControllerView.getTextColor())
+            setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
+                override fun onChooseColor(position : Int, color : Int) {
+                    binding.onScreenControllerView.setTextColor(colors[position])
+                    backgroundColorPicker.positiveButton.performClick()
+                }
+
+                override fun onCancel() {/*Nothing to do*/
+                }
+            })
+            show()
+        }
+    }
+
+    private fun mergeColorPickers(mainColorPicker : ColorPicker, secondColorPicker : ColorPicker) {
+        with(mainColorPicker) {
+            dialogViewLayout.apply {
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.BOTTOM }
+                if (viewTreeObserver.isAlive) {
+                    viewTreeObserver.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
+                        override fun onGlobalLayout() {
+                            viewTreeObserver.removeOnGlobalLayoutListener(this)
+                            getmDialog()!!.window!!.setLayout((width * 1.2).roundToInt(), (height * 1.8).roundToInt())
+                        }
+                    })
+                }
+            }
+            (secondColorPicker.dialogViewLayout.parent as ViewGroup).removeView(secondColorPicker.dialogViewLayout)
+            getmDialog()?.addContentView(secondColorPicker.dialogViewLayout, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        }
+    }
+
 
     private val actions : List<Pair<Int, () -> Unit>> = listOf(
         Pair(R.drawable.ic_restore) { binding.onScreenControllerView.resetControls() },
