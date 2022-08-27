@@ -25,8 +25,8 @@ interface ControllerConfiguration {
  */
 class ControllerConfigurationDummy(defaultRelativeX : Float, defaultRelativeY : Float) : ControllerConfiguration {
     override var alpha : Int = 255
-    override var textColor = Color.GRAY
-    override var backgroundColor = Color.GRAY
+    override var textColor = Color.argb(180, 0, 0, 0)
+    override var backgroundColor = Color.argb(180, 255, 255, 255)
     override var enabled = true
     override var globalScale = 1f
     override var relativeX = defaultRelativeX
@@ -37,8 +37,8 @@ class ControllerConfigurationImpl(private val context : Context, private val but
     private inline fun <reified T> config(default : T, prefix : String = "${buttonId.name}_") = sharedPreferences(context, default, prefix, "controller_config")
 
     override var alpha by config(255, "")
-    override var textColor by config(Color.GRAY)
-    override var backgroundColor by config(Color.GRAY)
+    override var textColor by config(Color.argb(180, 0, 0, 0))
+    override var backgroundColor by config(Color.argb(180, 255, 255, 255))
     override var enabled by config(true)
     override var globalScale by config(1.15f, "")
     override var relativeX by config(defaultRelativeX)
