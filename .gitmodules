@@ -42,9 +42,6 @@
 [submodule "C++ Range v3"]
 	path = app/libraries/range
 	url = https://github.com/ericniebler/range-v3
-[submodule "Sirit"]
-	path = app/libraries/sirit
-	url = https://github.com/ReinUsesLisp/sirit
 [submodule "Shader Compiler"]
 	path = app/libraries/shader-compiler
 	url = https://github.com/skyline-emu/shader-compiler.git
@@ -54,3 +51,6 @@
 [submodule "app/libraries/robin-map"]
 	path = app/libraries/robin-map
 	url = https://github.com/Tessil/robin-map
+[submodule "app/libraries/sirit"]
+	path = app/libraries/sirit
+	url = https://github.com/bylaws/sirit
