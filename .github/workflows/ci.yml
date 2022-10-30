@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ gpu-new ]
+    branches: [ gpu-new, gpu-new-custom ]
   workflow_dispatch:
  
 jobs:
