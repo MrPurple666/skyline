@@ -81,5 +81,5 @@ jobs:
         if: ${{ env.IS_SKYLINE_SIGNED == 'false' }}
         uses: actions/upload-artifact@v3
         with:
-          name: skyline-${{ github.run_number }}-unsigned-release.apk
-          path: skyline-${{ github.run_number }}-unsigned-release.apk
+          name: skyline-${{ github.run_number }}-unsigned_edge3gpu-release.apk
+          path: skyline-${{ github.run_number }}-unsigned_edge3gpu-release.apk
