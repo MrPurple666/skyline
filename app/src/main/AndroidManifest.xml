@@ -18,6 +18,7 @@
         android:hasFragileUserData="${shouldSaveUserData}"
         android:icon="@drawable/logo_skyline"
         android:isGame="true"
+        android:largeHeap="true"
         android:label="${appLabel}"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
