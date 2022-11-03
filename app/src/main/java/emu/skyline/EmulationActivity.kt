@@ -128,6 +128,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     @Suppress("unused")
     private fun initializeControllers() {
         inputHandler.initializeControllers()
+        inputHandler.initialiseMotionSensors(this)
     }
 
     /**
