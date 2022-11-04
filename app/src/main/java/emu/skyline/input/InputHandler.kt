@@ -5,11 +5,18 @@
 
 package emu.skyline.input
 
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorManager
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import emu.skyline.utils.ByteBufferSerializable
 import emu.skyline.utils.PreferenceSettings
+import emu.skyline.utils.u64
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.abs
 
 /**
@@ -55,10 +62,32 @@ class InputHandler(private val inputManager : InputManager, private val preferen
         /**
          * This sets the values of the points on the guest touch-screen
          *
+         * @param index The index of the controller this is directed to
+         * @param motionId The ID of the motion sensor that is being modified
+         * @param value A byte buffer of skyline::input::MotionInput in C++
+         */
+        private external fun setMotionState(index : Int, motionId : Int, value : ByteBuffer)
+
+        /**
+         * This sets the values of the points on the guest touch-screen
+         *
          * @param points An array of skyline::input::TouchScreenPoint in C++ represented as integers
          */
         external fun setTouchState(points : IntArray)
     }
+
+    data class MotionSensorInput(
+        var deltaTimestamp:u64 = 0uL,
+        @param:ByteBufferSerializable.ByteBufferSerializableArray(3) var gyroscope:FloatArray = FloatArray(3),
+        @param:ByteBufferSerializable.ByteBufferSerializableArray(3) var accelerometer:FloatArray = FloatArray(3),
+        @param:ByteBufferSerializable.ByteBufferSerializableArray(4) var quaternion:FloatArray = FloatArray(4),
+        @param:ByteBufferSerializable.ByteBufferSerializableArray(9) var orientationMatrix:FloatArray = FloatArray(9),
+    ): ByteBufferSerializable{}
+
+    /**
+     * The latest state of the motion sensor
+     */
+    val motionSensor=MotionSensorInput();
 
     /**
      * Initializes all of the controllers from [InputManager] on the guest
@@ -204,6 +233,51 @@ class InputHandler(private val inputManager : InputManager, private val preferen
         setTouchState(points)
 
         return true
+    }
+
+    fun HandleAccuracyChangedEvent(sensor: Sensor?, accuracy: Int) {}
+
+    /**
+     * This handles translating any [SensorEvent]s to a [GuestEvent] that is passed into libskyline
+     */
+    fun HandleSensorChangedEvent(event: SensorEvent) {
+        when(event.sensor.type){
+            Sensor.TYPE_ACCELEROMETER->{
+                motionSensor.accelerometer[0]=event.values[0]/9.8f;
+                motionSensor.accelerometer[1]=event.values[1]/9.8f;
+                motionSensor.accelerometer[2]=event.values[2]/9.8f;
+            }
+            Sensor.TYPE_GYROSCOPE->{
+                motionSensor.gyroscope[0]=event.values[0];
+                motionSensor.gyroscope[1]=event.values[1];
+                motionSensor.gyroscope[2]=event.values[2];
+            }
+            Sensor.TYPE_ROTATION_VECTOR->{
+                motionSensor.quaternion[0]=event.values[0];
+                motionSensor.quaternion[1]=event.values[1];
+                motionSensor.quaternion[2]=event.values[2];
+                motionSensor.quaternion[3]=event.values[3];
+                SensorManager.getRotationMatrixFromVector(motionSensor.orientationMatrix,event.values);
+            }
+            Sensor.TYPE_GAME_ROTATION_VECTOR->{
+                motionSensor.quaternion[0]=event.values[0];
+                motionSensor.quaternion[1]=event.values[1];
+                motionSensor.quaternion[2]=event.values[2];
+                motionSensor.quaternion[3]=event.values[3];
+                SensorManager.getRotationMatrixFromVector(motionSensor.orientationMatrix,event.values);
+            }
+            else->{}
+        }
+
+        // Only update state on accelerometer data
+        if(event.sensor.type != Sensor.TYPE_ACCELEROMETER)
+            return;
+
+        // Calculate the actual delta time
+        motionSensor.deltaTimestamp=20000uL;
+        setMotionState(0,0,motionSensor.writeToByteBuffer(ByteBuffer.allocateDirect(0x54).order(ByteOrder.LITTLE_ENDIAN)));
+        setMotionState(0,1,motionSensor.writeToByteBuffer(ByteBuffer.allocateDirect(0x54).order(ByteOrder.LITTLE_ENDIAN)));
+        setMotionState(0,2,motionSensor.writeToByteBuffer(ByteBuffer.allocateDirect(0x54).order(ByteOrder.LITTLE_ENDIAN)));
     }
 
     fun getFirstControllerType() : ControllerType {

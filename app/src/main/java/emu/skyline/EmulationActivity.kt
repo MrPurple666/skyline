@@ -10,6 +10,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.AssetManager
 import android.graphics.PointF
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.hardware.display.DisplayManager
 import android.os.*
 import android.util.Log
@@ -38,7 +42,7 @@ import javax.inject.Inject
 import kotlin.math.abs
 
 @AndroidEntryPoint
-class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTouchListener, DisplayManager.DisplayListener {
+class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTouchListener, DisplayManager.DisplayListener, SensorEventListener {
     companion object {
         private val Tag = EmulationActivity::class.java.simpleName
         const val ReturnToMainTag = "returnToMain"
@@ -128,6 +132,21 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     @Suppress("unused")
     private fun initializeControllers() {
         inputHandler.initializeControllers()
+
+        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
+            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
+        }
+        sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)?.also { gyroscope ->
+            sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_GAME)
+        }
+        sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)?.also { rotationVector ->
+            sensorManager.registerListener(this, rotationVector, SensorManager.SENSOR_DELAY_GAME)
+        }
+        sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR)?.also { rotationVector ->
+            sensorManager.registerListener(this, rotationVector, SensorManager.SENSOR_DELAY_GAME)
+        }
     }
 
     /**
@@ -377,6 +396,14 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     private fun onStickStateChanged(stickId : StickId, position : PointF) {
         InputHandler.setAxisValue(0, stickId.xAxis.ordinal, (position.x * Short.MAX_VALUE).toInt())
         InputHandler.setAxisValue(0, stickId.yAxis.ordinal, (-position.y * Short.MAX_VALUE).toInt()) // Y is inverted, since drawing starts from top left
+    }
+
+    override fun onAccuracyChanged(event: Sensor?, accuracy: Int) {
+        inputHandler.HandleAccuracyChangedEvent(event, accuracy)
+    }
+
+    override fun onSensorChanged(event: SensorEvent) {
+        inputHandler.HandleSensorChangedEvent(event)
     }
 
     @SuppressLint("WrongConstant")
