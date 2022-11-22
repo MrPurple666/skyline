@@ -57,9 +57,9 @@ class ControllerActivity : AppCompatActivity() {
      */
     val axisMap = mutableMapOf<AxisId, ControllerStickViewItem>()
 
-    val stickItems = mutableListOf<ControllerStickViewItem>()
+    private val stickItems = mutableListOf<ControllerStickViewItem>()
 
-    val buttonItems = mutableListOf<ControllerButtonViewItem>()
+    private val buttonItems = mutableListOf<ControllerButtonViewItem>()
 
     @Inject
     lateinit var preferenceSettings : PreferenceSettings
@@ -191,7 +191,7 @@ class ControllerActivity : AppCompatActivity() {
 
         var layoutDone = false // Tracks if the layout is complete to avoid retrieving invalid attributes
         binding.coordinatorLayout.viewTreeObserver.addOnTouchModeChangeListener { isTouchMode ->
-            val layoutUpdate = { ->
+            val layoutUpdate = {
                 val params = binding.controllerList.layoutParams as CoordinatorLayout.LayoutParams
                 if (!isTouchMode) {
                     binding.titlebar.appBarLayout.setExpanded(true)
@@ -218,7 +218,7 @@ class ControllerActivity : AppCompatActivity() {
             }
         }
 
-        val dividerItemDecoration = object : DividerItemDecoration(this, DividerItemDecoration.VERTICAL) {
+        val dividerItemDecoration = object : DividerItemDecoration(this, VERTICAL) {
             override fun onDraw(canvas : Canvas, parent : RecyclerView, state : RecyclerView.State) {
                 val divider = drawable!!
                 for (i in 0 until parent.childCount) {

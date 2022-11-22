@@ -169,6 +169,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     /**
      * @note Any caller has to handle the application potentially being restarted with the supplied intent
      */
+    @SuppressLint("Recycle")
     private fun executeApplication(intent : Intent) {
         if (emulationThread?.isAlive == true) {
             shouldFinish = false
