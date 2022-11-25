@@ -437,14 +437,9 @@ namespace skyline::kernel::type {
                         // We need to update the boolean flag denoting that there are no more threads waiting on this address
                         __atomic_store_n(address, false, __ATOMIC_SEQ_CST);
                 } else {
-                    // If we didn't find the thread in the queue then it must have been signalled already and we should just wait
-                    shouldWait = true;
+                    state.scheduler->WaitSchedule(false);
+                    return {};
                 }
-            }
-
-            if (shouldWait) {
-                state.scheduler->WaitSchedule(false);
-                return {};
             }
 
             state.scheduler->InsertThread(state.thread);
