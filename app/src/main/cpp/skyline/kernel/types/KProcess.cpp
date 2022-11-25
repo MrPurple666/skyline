@@ -287,14 +287,14 @@ namespace skyline::kernel::type {
         {
             std::scoped_lock lock{syncWaiterMutex};
 
+            u32 userValue{__atomic_load_n(address, __ATOMIC_SEQ_CST)};
             switch (type) {
                 case ArbitrationType::WaitIfLessThan:
-                    if (*address >= value) [[unlikely]]
+                    if (userValue >= value) [[unlikely]]
                         return result::InvalidState;
                     break;
 
                 case ArbitrationType::DecrementAndWaitIfLessThan: {
-                    u32 userValue{__atomic_load_n(address, __ATOMIC_SEQ_CST)};
                     do {
                         if (value <= userValue) [[unlikely]] // We want to explicitly decrement **after** the check
                             return result::InvalidState;
@@ -303,7 +303,7 @@ namespace skyline::kernel::type {
                 }
 
                 case ArbitrationType::WaitIfEqual:
-                    if (*address != value) [[unlikely]]
+                    if (userValue != value) [[unlikely]]
                         return result::InvalidState;
                     break;
             }
