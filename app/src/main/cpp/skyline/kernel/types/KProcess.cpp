@@ -230,6 +230,16 @@ namespace skyline::kernel::type {
         }
 
         {
+            // Update all waiter information
+            std::unique_lock lock{state.thread->waiterMutex};
+            state.thread->waitKey = mutex;
+            state.thread->waitTag = tag;
+            state.thread->waitConditionVariable = key;
+            state.thread->waitSignalled = false;
+            state.thread->waitResult = {};
+        }
+
+        {
             std::scoped_lock lock{syncWaiterMutex};
             auto queue{syncWaiters.equal_range(key)};
             syncWaiters.insert(std::upper_bound(queue.first, queue.second, state.thread->priority.load(), [](const i8 priority, const SyncWaiters::value_type &it) { return it.second->priority > priority; }), {key, state.thread});
@@ -260,7 +270,7 @@ namespace skyline::kernel::type {
                     std::unique_lock lock{state.thread->waiterMutex};
 
                     if (state.thread->waitSignalled) {
-                        if (state.thread->waitThread) {
+                        if (state.thread->waitKey) {
                             auto waitThread{state.thread->waitThread};
                             std::unique_lock waitLock{waitThread->waiterMutex, std::try_to_lock};
                             if (!waitLock) {
@@ -277,7 +287,7 @@ namespace skyline::kernel::type {
                                 waiters.erase(it);
                                 state.thread->UpdatePriorityInheritance();
 
-                                state.thread->waitMutex = nullptr;
+                                state.thread->waitKey = nullptr;
                                 state.thread->waitTag = 0;
                                 state.thread->waitThread = nullptr;
                             } else {
@@ -285,7 +295,7 @@ namespace skyline::kernel::type {
                                 shouldWait = true;
                             }
                         } else {
-                            // If the waitThread is null then we were signalled and are no longer waiting on the associated mutex
+                            // If the waitKey is null then we were signalled and are no longer waiting on the associated mutex
                             shouldWait = true;
                         }
                     } else {
@@ -315,14 +325,7 @@ namespace skyline::kernel::type {
             state.scheduler->WaitSchedule();
         }
 
-        KHandle value{};
-        if (!__atomic_compare_exchange_n(mutex, &value, tag, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
-            while (MutexLock(state.thread, mutex, value & ~HandleWaitersBit, tag, true) != Result{})
-                if ((value = __atomic_or_fetch(mutex, HandleWaitersBit, __ATOMIC_SEQ_CST)) == HandleWaitersBit)
-                    if (__atomic_compare_exchange_n(mutex, &value, tag, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
-                        break;
-
-        return {};
+        return state.thread->waitResult;
     }
 
     void KProcess::ConditionVariableSignal(u32 *key, i32 amount) {
@@ -338,16 +341,15 @@ namespace skyline::kernel::type {
                 auto queue{syncWaiters.equal_range(key)};
 
                 if (queue.first != queue.second) {
-                    // If threads are waiting on us still then we need to remove the highest priority thread from the queue
-                    auto it{std::min_element(queue.first, queue.second, [](const SyncWaiters::value_type &lhs, const SyncWaiters::value_type &rhs) { return lhs.second->priority < rhs.second->priority; })};
-                    thread = it->second;
+                    // If we found a thread then we need to remove it from the queue
+                    thread = queue.first->second;
                     conditionVariable = thread->waitConditionVariable;
                     #ifndef NDEBUG
                     if (conditionVariable != key)
                         Logger::Warn("Condition variable mismatch: 0x{:X} != 0x{:X}", conditionVariable, key);
                     #endif
 
-                    syncWaiters.erase(it);
+                    syncWaiters.erase(queue.first);
                     waiterCount--;
                 } else if (queue.first == queue.second) {
                     // If we didn't find a thread then we need to clear the boolean flag denoting that there are no more threads waiting on this conditional variable
@@ -359,7 +361,7 @@ namespace skyline::kernel::type {
             std::scoped_lock lock{thread->waiterMutex};
             if (thread->waitConditionVariable == conditionVariable) {
                 // If the thread is still waiting on the same condition variable then we can signal it (It could no longer be waiting due to a timeout)
-                u32 *mutex{thread->waitMutex};
+                u32 *mutex{thread->waitKey};
                 KHandle tag{thread->waitTag};
 
                 while (true) {
