@@ -111,8 +111,8 @@ namespace skyline::kernel::type {
 
     constexpr u32 HandleWaitersBit{1UL << 30}; //!< A bit which denotes if a mutex psuedo-handle has waiters or not
 
-    Result KProcess::MutexLock(const std::shared_ptr<KThread> &thread, u32 *mutex, KHandle ownerHandle, KHandle tag, bool failOnOutdated) {
-        TRACE_EVENT_FMT("kernel", "MutexLock 0x{:X} @ 0x{:X}", mutex, thread->id);
+    Result KProcess::MutexLock(u32 *mutex, KHandle ownerHandle, KHandle tag, bool failOnOutdated) {
+        TRACE_EVENT_FMT("kernel", "MutexLock 0x{:X}", mutex);
 
         std::shared_ptr<KThread> owner;
         try {
@@ -315,7 +315,14 @@ namespace skyline::kernel::type {
             state.scheduler->WaitSchedule();
         }
 
-        return state.thread->waitResult;
+        KHandle value{};
+        if (!__atomic_compare_exchange_n(mutex, &value, tag, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+            while (MutexLock(mutex, value & ~HandleWaitersBit, tag, true) != Result{})
+                if ((value = __atomic_or_fetch(mutex, HandleWaitersBit, __ATOMIC_SEQ_CST)) == HandleWaitersBit)
+                    if (__atomic_compare_exchange_n(mutex, &value, tag, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+                        break;
+
+        return {};
     }
 
     void KProcess::ConditionVariableSignal(u32 *key, i32 amount) {

@@ -215,7 +215,7 @@ namespace skyline {
              * @param tag The handle of the thread which is requesting this lock
              * @param failOnOutdated If true, the function will return InvalidCurrentMemory if the supplied ownerHandle is outdated
              */
-            Result MutexLock(const std::shared_ptr<KThread> &thread, u32 *mutex, KHandle ownerHandle, KHandle tag, bool failOnOutdated = false);
+            Result MutexLock(u32 *mutex, KHandle ownerHandle, KHandle tag, bool failOnOutdated = false);
 
             /**
              * @brief Unlocks the mutex at the specified address
