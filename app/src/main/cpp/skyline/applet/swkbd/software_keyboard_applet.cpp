@@ -68,13 +68,12 @@ namespace skyline::applet::swkbd {
                   std::move(onAppletStateChanged),
                   std::move(onNormalDataPushFromApplet),
                   std::move(onInteractiveDataPushFromApplet),
-                  appletMode} {
-        mode = appletMode;
+                  appletMode}, mode{appletMode} {
     }
 
     Result SoftwareKeyboardApplet::Start() {
         if (mode != service::applet::LibraryAppletMode::AllForeground) {
-            Logger::Warn("Inline swkbd is unimplemented");
+            Logger::Warn("Stubbing out InlineKeyboard!");
             SendResult();
             return {};
         }
