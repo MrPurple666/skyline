@@ -69,11 +69,16 @@ namespace skyline::applet::swkbd {
                   std::move(onNormalDataPushFromApplet),
                   std::move(onInteractiveDataPushFromApplet),
                   appletMode} {
-        if (appletMode != service::applet::LibraryAppletMode::AllForeground)
-            throw exception("Inline Software Keyboard not implemeted");
+        mode = appletMode;
     }
 
     Result SoftwareKeyboardApplet::Start() {
+        if (mode != service::applet::LibraryAppletMode::AllForeground) {
+            Logger::Warn("Inline swkbd is unimplemented");
+            SendResult();
+            return {};
+        }
+
         std::scoped_lock lock{normalInputDataMutex};
         auto commonArgs{normalInputData.front()->GetSpan().as<service::applet::CommonArguments>()};
         normalInputData.pop();
