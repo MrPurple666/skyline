@@ -330,15 +330,16 @@ namespace skyline::kernel::type {
                 auto queue{syncWaiters.equal_range(key)};
 
                 if (queue.first != queue.second) {
-                    // If we found a thread then we need to remove it from the queue
-                    thread = queue.first->second;
+                    // If threads are waiting on us still then we need to remove the highest priority thread from the queue
+                    auto it{std::min_element(queue.first, queue.second, [](const SyncWaiters::value_type &lhs, const SyncWaiters::value_type &rhs) { return lhs.second->priority < rhs.second->priority; })};
+                    thread = it->second;
                     conditionVariable = thread->waitConditionVariable;
                     #ifndef NDEBUG
                     if (conditionVariable != key)
                         Logger::Warn("Condition variable mismatch: 0x{:X} != 0x{:X}", conditionVariable, key);
                     #endif
 
-                    syncWaiters.erase(queue.first);
+                    syncWaiters.erase(it);
                     waiterCount--;
                 } else if (queue.first == queue.second) {
                     // If we didn't find a thread then we need to clear the boolean flag denoting that there are no more threads waiting on this conditional variable
