@@ -385,7 +385,10 @@ namespace skyline::kernel {
 
             if (it == core->queue.begin()) {
                 // We need to send a yield signal to the thread if it's currently running
-                YieldThread(thread);
+                if (!thread->pendingYield) {
+                    thread->SendSignal(YieldSignal);
+                    thread->pendingYield = true;
+                }
                 thread->forceYield = true;
             }
         } else {
