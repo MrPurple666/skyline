@@ -3,10 +3,11 @@
 
 #include <common/settings.h>
 #include "IProfile.h"
+#include <os.h>
 
 namespace skyline::service::account {
     // Smallest JPEG file https://github.com/mathiasbynens/small/blob/master/jpeg.jpg
-    constexpr std::array<u8, 107> profileImageIcon{
+    constexpr std::array<u8, 107> profileImageIconDefault{
         0xFF, 0xD8, 0xFF, 0xDB, 0x00, 0x43, 0x00, 0x03, 0x02, 0x02, 0x02, 0x02,
         0x02, 0x03, 0x02, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06, 0x04,
         0x04, 0x04, 0x04, 0x04, 0x08, 0x06, 0x06, 0x05, 0x06, 0x09, 0x08, 0x0A,
@@ -53,14 +54,38 @@ namespace skyline::service::account {
     }
 
     Result IProfile::GetImageSize(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        response.Push<u32>(profileImageIcon.size());
+        std::vector<char> profileImageIcon = getProfilePicture();
+        if(profileImageIcon.empty()){
+            response.Push<u32>(profileImageIconDefault.size());
+        } else {
+            response.Push<u32>(profileImageIcon.size());
+        }
         return {};
     }
 
     Result IProfile::LoadImage(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        // TODO: load actual profile image
-        request.outputBuf.at(0).copy_from(profileImageIcon);
-        response.Push<u32>(profileImageIcon.size());
+        std::vector<char> profileImageIcon = getProfilePicture();
+        if(profileImageIcon.empty()){
+            request.outputBuf.at(0).copy_from(profileImageIconDefault);
+            response.Push<u32>(profileImageIconDefault.size());
+        } else {
+            request.outputBuf.at(0).copy_from(profileImageIcon);
+            response.Push<u32>(profileImageIcon.size());
+        }
+        return {};
+    }
+
+    std::vector<char> IProfile::getProfilePicture(){
+        const std::string profilePicturePath = state.os->publicAppFilesPath + "/switch/nand/system/save/8000000000000010/su/avators/profilePicture.jpeg";
+        std::ifstream profileImageIconPointer(profilePicturePath, std::ios::in | std::ios::binary | std::ios::ate);
+        if(profileImageIconPointer.is_open()){
+            std::streamsize size = profileImageIconPointer.tellg();
+            profileImageIconPointer.seekg(0, std::ios::beg);
+            std::vector<char> profileImageIcon(size);
+            profileImageIconPointer.read(profileImageIcon.data(), size);
+            profileImageIconPointer.close();
+            return profileImageIcon;
+        }
         return {};
     }
 }

@@ -1,0 +1,80 @@
+/*
+ * SPDX-License-Identifier: MPL-2.0
+ * Copyright © 2022 Skyline Team and Contributors (https://github.com/skyline-emu/)
+ */
+
+package emu.skyline.preference
+
+import android.content.ContentResolver
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.AttributeSet
+import androidx.activity.ComponentActivity
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.preference.Preference
+import androidx.preference.Preference.SummaryProvider
+import androidx.preference.PreferenceManager
+import androidx.preference.R
+import emu.skyline.SkylineApplication
+import emu.skyline.getPublicFilesDir
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+
+class ImagePickerPreference @JvmOverloads constructor(context : Context, attrs : AttributeSet? = null, defStyleAttr : Int = R.attr.preferenceStyle) : Preference(context, attrs, defStyleAttr) {
+    private val pickMedia = (context as ComponentActivity).registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        val profilePictureDir = SkylineApplication.instance.getPublicFilesDir().canonicalPath + "/switch/nand/system/save/8000000000000010/su/avators";
+        try{
+            if (uri != null) {  // The user selected a photo.
+                PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, "Selected URI: $uri").apply()
+                File(profilePictureDir).mkdirs()
+                context.applicationContext.contentResolver.let { contentResolver: ContentResolver ->
+                    val readUriPermission: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    contentResolver.takePersistableUriPermission(uri, readUriPermission)
+                    contentResolver.openInputStream(uri)?.use { inputStream: InputStream ->
+                        var bitmap = BitmapFactory.decodeStream(inputStream)
+                        // Compress the image.
+                        bitmap = Bitmap.createScaledBitmap(bitmap,256,256,false)
+                        storeBitmap(bitmap, "$profilePictureDir/profilePicture.jpeg")
+                    }
+                }
+            } else {    // User didn't select a photo. As such, if the user already had one, it's assumed that he wants to remove it.
+                if(File("$profilePictureDir/profilePicture.jpeg").exists()){
+                    File("$profilePictureDir/profilePicture.jpeg").delete()
+                }
+                PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, "No photo selected").apply()
+            }
+            notifyChanged()
+        } catch (e: Exception){
+            e.printStackTrace()
+        }
+    }
+
+    init {
+        summaryProvider = SummaryProvider<ImagePickerPreference> { preference ->
+            Uri.decode(preference.getPersistedString("No photo selected"))
+        }
+    }
+
+    override fun onClick() = pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+
+    // Given a bitmap, saves it in the specified location.
+    private fun storeBitmap(bitmap: Bitmap, filePath: String){
+        try{
+            // Create the file where the bitmap will be stored
+            val file: File = File(filePath)
+            file.createNewFile()
+            // Store bitmap as JPEG
+            val outputFile = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputFile)
+            outputFile.flush()
+            outputFile.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}
