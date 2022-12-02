@@ -38,7 +38,7 @@ namespace skyline::service::account {
          */
         Result LoadImage(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
 
-        std::vector<char> getProfilePicture();
+        std::vector<char> GetProfilePicture();
 
         SERVICE_DECL(
             SFUNC(0x0, IProfile, Get),

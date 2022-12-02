@@ -39,12 +39,12 @@ class ImagePickerPreference @JvmOverloads constructor(context : Context, attrs :
                         var bitmap = BitmapFactory.decodeStream(inputStream)
                         // Compress the image.
                         bitmap = Bitmap.createScaledBitmap(bitmap,256,256,false)
-                        storeBitmap(bitmap, "$profilePictureDir/profilePicture.jpeg")
+                        StoreBitmap(bitmap, "$profilePictureDir/profile_picture.jpeg")
                     }
                 }
             } else {    // User didn't select a photo. As such, if the user already had one, it's assumed that he wants to remove it.
-                if(File("$profilePictureDir/profilePicture.jpeg").exists()){
-                    File("$profilePictureDir/profilePicture.jpeg").delete()
+                if(File("$profilePictureDir/profile_picture.jpeg").exists()){
+                    File("$profilePictureDir/profile_picture.jpeg").delete()
                 }
                 PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, "No photo selected").apply()
             }
@@ -63,7 +63,7 @@ class ImagePickerPreference @JvmOverloads constructor(context : Context, attrs :
     override fun onClick() = pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
 
     // Given a bitmap, saves it in the specified location.
-    private fun storeBitmap(bitmap: Bitmap, filePath: String){
+    private fun StoreBitmap(bitmap: Bitmap, filePath: String){
         try{
             // Create the file where the bitmap will be stored
             val file: File = File(filePath)

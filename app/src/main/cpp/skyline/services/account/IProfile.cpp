@@ -54,7 +54,7 @@ namespace skyline::service::account {
     }
 
     Result IProfile::GetImageSize(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        std::vector<char> profileImageIcon = getProfilePicture();
+        std::vector<char> profileImageIcon = GetProfilePicture();
         if(profileImageIcon.empty()){
             response.Push<u32>(profileImageIconDefault.size());
         } else {
@@ -64,7 +64,7 @@ namespace skyline::service::account {
     }
 
     Result IProfile::LoadImage(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        std::vector<char> profileImageIcon = getProfilePicture();
+        std::vector<char> profileImageIcon = GetProfilePicture();
         if(profileImageIcon.empty()){
             request.outputBuf.at(0).copy_from(profileImageIconDefault);
             response.Push<u32>(profileImageIconDefault.size());
@@ -75,8 +75,8 @@ namespace skyline::service::account {
         return {};
     }
 
-    std::vector<char> IProfile::getProfilePicture(){
-        const std::string profilePicturePath = state.os->publicAppFilesPath + "/switch/nand/system/save/8000000000000010/su/avators/profilePicture.jpeg";
+    std::vector<char> IProfile::GetProfilePicture(){
+        const std::string profilePicturePath = state.os->publicAppFilesPath + "/switch/nand/system/save/8000000000000010/su/avators/profile_picture.jpeg";
         std::ifstream profileImageIconPointer(profilePicturePath, std::ios::in | std::ios::binary | std::ios::ate);
         if(profileImageIconPointer.is_open()){
             std::streamsize size = profileImageIconPointer.tellg();
