@@ -189,6 +189,14 @@ extern "C" JNIEXPORT void Java_emu_skyline_EmulationActivity_updatePerformanceSt
     env->SetFloatField(thiz, averageFrametimeDeviationField, AverageFrametimeDeviationMs);
 }
 
+extern "C" JNIEXPORT jint Java_emu_skyline_EmulationActivity_toggleDisableFrameThrottling(JNIEnv *env, jobject) {
+    auto gpu{GpuWeak.lock()};
+    if (!gpu)
+        return -1;
+    jboolean newValue = gpu->presentation.toggleDisableFrameThrottling();
+    return newValue ? 1 : 0;
+}
+
 extern "C" JNIEXPORT void JNICALL Java_emu_skyline_input_InputHandler_00024Companion_setController(JNIEnv *, jobject, jint index, jint type, jint partnerIndex) {
     auto input{InputWeak.lock()};
     std::lock_guard guard(input->npad.mutex);

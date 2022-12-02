@@ -115,6 +115,11 @@ namespace skyline::gpu {
         void UpdateSurface(jobject newSurface);
 
         /**
+         * @brief Toggles DisableFrameThrottling setting
+         */
+        bool toggleDisableFrameThrottling();
+
+        /**
          * @brief Queue the supplied texture to be presented to the screen
          * @param timestamp The earliest timestamp (relative to skyline::util::GetTickNs) at which the frame must be presented, it should be 0 when it doesn't matter
          * @param swapInterval The amount of display refreshes that must take place prior to presenting this image
