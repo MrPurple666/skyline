@@ -27,10 +27,11 @@ import java.io.InputStream
 
 class ImagePickerPreference @JvmOverloads constructor(context : Context, attrs : AttributeSet? = null, defStyleAttr : Int = R.attr.preferenceStyle) : Preference(context, attrs, defStyleAttr) {
     private val pickMedia = (context as ComponentActivity).registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        val profilePictureDir = SkylineApplication.instance.getPublicFilesDir().canonicalPath + "/switch/nand/system/save/8000000000000010/su/avators";
+        val profilePictureDir = SkylineApplication.instance.getPublicFilesDir().canonicalPath + "/switch/nand/system/save/8000000000000010/su/avators"
+        val profilePictureName = "profile_picture.jpeg"
         try{
             if (uri != null) {  // The user selected a photo.
-                PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, "Selected URI: $uri").apply()
+                PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, "$profilePictureDir/$profilePictureName").apply()
                 File(profilePictureDir).mkdirs()
                 context.applicationContext.contentResolver.let { contentResolver: ContentResolver ->
                     val readUriPermission: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -39,12 +40,12 @@ class ImagePickerPreference @JvmOverloads constructor(context : Context, attrs :
                         var bitmap = BitmapFactory.decodeStream(inputStream)
                         // Compress the image.
                         bitmap = Bitmap.createScaledBitmap(bitmap,256,256,false)
-                        StoreBitmap(bitmap, "$profilePictureDir/profile_picture.jpeg")
+                        StoreBitmap(bitmap, "$profilePictureDir/$profilePictureName")
                     }
                 }
             } else {    // User didn't select a photo. As such, if the user already had one, it's assumed that he wants to remove it.
-                if(File("$profilePictureDir/profile_picture.jpeg").exists()){
-                    File("$profilePictureDir/profile_picture.jpeg").delete()
+                if(File("$profilePictureDir/$profilePictureName").exists()){
+                    File("$profilePictureDir/$profilePictureName").delete()
                 }
                 PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, "No photo selected").apply()
             }

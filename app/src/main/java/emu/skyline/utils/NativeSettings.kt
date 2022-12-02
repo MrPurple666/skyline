@@ -15,6 +15,7 @@ class NativeSettings(context : Context, pref : PreferenceSettings) {
     // System
     var isDocked : Boolean = pref.isDocked
     var usernameValue : String = pref.usernameValue
+    var profilePictureValue : String = pref.profilePictureValue
     var systemLanguage : Int = pref.systemLanguage
     var systemRegion : Int = pref.systemRegion
 
@@ -46,5 +47,6 @@ class NativeSettings(context : Context, pref : PreferenceSettings) {
          * Sets libskyline logger level to the given one
          */
         external fun setLogLevel(logLevel : Int)
+
     }
 }

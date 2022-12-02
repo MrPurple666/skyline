@@ -71,7 +71,7 @@
             app:limit="31"
             app:title="@string/username" />
         <emu.skyline.preference.ImagePickerPreference
-            app:key="profile_picture"
+            app:key="profile_picture_value"
             app:title="@string/profile_picture" />
         <emu.skyline.preference.IntegerListPreference
             android:defaultValue="1"

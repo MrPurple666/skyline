@@ -76,7 +76,7 @@ namespace skyline::service::account {
     }
 
     std::vector<char> IProfile::GetProfilePicture(){
-        const std::string profilePicturePath = state.os->publicAppFilesPath + "/switch/nand/system/save/8000000000000010/su/avators/profile_picture.jpeg";
+        const std::string profilePicturePath = *state.settings->profilePictureValue;
         std::ifstream profileImageIconPointer(profilePicturePath, std::ios::in | std::ios::binary | std::ios::ate);
         if(profileImageIconPointer.is_open()){
             std::streamsize size = profileImageIconPointer.tellg();
