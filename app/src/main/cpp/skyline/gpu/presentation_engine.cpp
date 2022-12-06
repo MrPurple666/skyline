@@ -33,6 +33,7 @@ namespace skyline::gpu {
         auto desc{presentationTrack.Serialize()};
         desc.set_name("Presentation");
         perfetto::TrackEvent::SetTrackDescriptor(presentationTrack, desc);
+        state.settings->disableFrameThrottling.AddCallback(std::bind(&PresentationEngine::OnDisableFrameThrottlingChanged, this, std::placeholders::_1));
     }
 
     PresentationEngine::~PresentationEngine() {
@@ -338,6 +339,13 @@ namespace skyline::gpu {
         swapchainImageCount = vkImages.size();
     }
 
+    void PresentationEngine::OnDisableFrameThrottlingChanged(const bool &value) {
+        std::scoped_lock guard{mutex};
+        vkSwapchain.reset();
+        if (jSurface && swapchainExtent && swapchainFormat)
+            UpdateSwapchain(swapchainFormat, swapchainExtent);
+    }
+
     void PresentationEngine::UpdateSurface(jobject newSurface) {
         std::scoped_lock guard{mutex};
 
@@ -386,15 +394,6 @@ namespace skyline::gpu {
             vkSurface.reset();
             window = nullptr;
         }
-    }
-
-    bool PresentationEngine::toggleDisableFrameThrottling() {
-        std::scoped_lock guard{mutex};
-        state.settings->disableFrameThrottling = !*state.settings->disableFrameThrottling;
-        vkSwapchain.reset();
-        if (swapchainExtent && swapchainFormat)
-            UpdateSwapchain(swapchainFormat, swapchainExtent);
-        return *state.settings->disableFrameThrottling;
     }
 
     u64 PresentationEngine::Present(const std::shared_ptr<TextureView> &texture, i64 timestamp, i64 swapInterval, AndroidRect crop, NativeWindowScalingMode scalingMode, NativeWindowTransform transform, skyline::service::hosbinder::AndroidFence fence, const std::function<void()> &presentCallback) {

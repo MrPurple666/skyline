@@ -124,11 +124,6 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     private external fun updatePerformanceStatistics()
 
     /**
-     * Toggles disableFrameThrottling in native settings
-     */
-    private external fun toggleDisableFrameThrottling() : Int
-
-    /**
      * @see [InputHandler.initializeControllers]
      */
     @Suppress("unused")
@@ -257,11 +252,9 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
                     }
                 }, 250)
                 setOnClickListener {
-                    var result = toggleDisableFrameThrottling()
-                    if (result >= 0) {
-                        var color = if (result == 0) getColor(R.color.colorPerfStatsPrimary) else getColor(R.color.colorPerfStatsSecondary);
-                        binding.perfStats.setTextColor(color)
-                    }
+                    preferenceSettings.disableFrameThrottling = !preferenceSettings.disableFrameThrottling
+                    var color = if (preferenceSettings.disableFrameThrottling) getColor(R.color.colorPerfStatsSecondary) else getColor(R.color.colorPerfStatsPrimary)
+                    binding.perfStats.setTextColor(color)
                 }
             }
         }

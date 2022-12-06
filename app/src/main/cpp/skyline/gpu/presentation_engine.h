@@ -104,6 +104,11 @@ namespace skyline::gpu {
          */
         void UpdateSwapchain(texture::Format format, texture::Dimensions extent);
 
+        /**
+         * @brief Handles DisableFrameThrottling setting changed event
+        */
+        void OnDisableFrameThrottlingChanged(const bool &value);
+
       public:
         PresentationEngine(const DeviceState &state, GPU &gpu);
 
@@ -113,11 +118,6 @@ namespace skyline::gpu {
          * @brief Replaces the underlying Android surface with a new one, it handles resetting the swapchain and such
          */
         void UpdateSurface(jobject newSurface);
-
-        /**
-         * @brief Toggles DisableFrameThrottling setting
-         */
-        bool toggleDisableFrameThrottling();
 
         /**
          * @brief Queue the supplied texture to be presented to the screen
