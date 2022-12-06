@@ -47,6 +47,5 @@ class NativeSettings(context : Context, pref : PreferenceSettings) {
          * Sets libskyline logger level to the given one
          */
         external fun setLogLevel(logLevel : Int)
-
     }
 }

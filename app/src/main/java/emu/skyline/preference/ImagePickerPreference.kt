@@ -63,7 +63,9 @@ class ImagePickerPreference @JvmOverloads constructor(context : Context, attrs :
 
     override fun onClick() = pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
 
-    // Given a bitmap, saves it in the specified location.
+    /**
+     * Given a bitmap, saves it in the specified location.
+     */
     private fun StoreBitmap(bitmap: Bitmap, filePath: String){
         try{
             // Create the file where the bitmap will be stored

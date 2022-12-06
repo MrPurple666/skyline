@@ -1,23 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#include <os.h>
+#include <vfs/os_backing.h>
+#include <fcntl.h>
 #include <common/settings.h>
 #include "IProfile.h"
-#include <os.h>
 
 namespace skyline::service::account {
-    // Smallest JPEG file https://github.com/mathiasbynens/small/blob/master/jpeg.jpg
-    constexpr std::array<u8, 107> profileImageIconDefault{
-        0xFF, 0xD8, 0xFF, 0xDB, 0x00, 0x43, 0x00, 0x03, 0x02, 0x02, 0x02, 0x02,
-        0x02, 0x03, 0x02, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06, 0x04,
-        0x04, 0x04, 0x04, 0x04, 0x08, 0x06, 0x06, 0x05, 0x06, 0x09, 0x08, 0x0A,
-        0x0A, 0x09, 0x08, 0x09, 0x09, 0x0A, 0x0C, 0x0F, 0x0C, 0x0A, 0x0B, 0x0E,
-        0x0B, 0x09, 0x09, 0x0D, 0x11, 0x0D, 0x0E, 0x0F, 0x10, 0x10, 0x11, 0x10,
-        0x0A, 0x0C, 0x12, 0x13, 0x12, 0x10, 0x13, 0x0F, 0x10, 0x10, 0x10, 0xFF,
-        0xC9, 0x00, 0x0B, 0x08, 0x00, 0x01, 0x00, 0x01, 0x01, 0x01, 0x11, 0x00,
-        0xFF, 0xCC, 0x00, 0x06, 0x00, 0x10, 0x10, 0x05, 0xFF, 0xDA, 0x00, 0x08,
-        0x01, 0x01, 0x00, 0x00, 0x3F, 0x00, 0xD2, 0xCF, 0x20, 0xFF, 0xD9
-    };
 
     IProfile::IProfile(const DeviceState &state, ServiceManager &manager, const UserId &userId) : userId(userId), BaseService(state, manager) {}
 
@@ -54,38 +44,30 @@ namespace skyline::service::account {
     }
 
     Result IProfile::GetImageSize(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        std::vector<char> profileImageIcon = GetProfilePicture();
-        if(profileImageIcon.empty()){
-            response.Push<u32>(profileImageIconDefault.size());
-        } else {
-            response.Push<u32>(profileImageIcon.size());
-        }
+        std::shared_ptr<vfs::Backing> profileImageIcon{GetProfilePicture()};
+        response.Push<u32>(profileImageIcon->size);
+
         return {};
     }
 
     Result IProfile::LoadImage(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        std::vector<char> profileImageIcon = GetProfilePicture();
-        if(profileImageIcon.empty()){
-            request.outputBuf.at(0).copy_from(profileImageIconDefault);
-            response.Push<u32>(profileImageIconDefault.size());
-        } else {
-            request.outputBuf.at(0).copy_from(profileImageIcon);
-            response.Push<u32>(profileImageIcon.size());
-        }
+        std::shared_ptr<vfs::Backing> profileImageIcon{GetProfilePicture()};
+        std::vector<char> profileImage(profileImageIcon->size);
+
+        profileImageIcon->Read(skyline::span<char>(profileImage), 0);
+
+        request.outputBuf.at(0).copy_from(profileImage);
+        response.Push<u32>(profileImageIcon->size);
+
         return {};
     }
 
-    std::vector<char> IProfile::GetProfilePicture(){
-        const std::string profilePicturePath = *state.settings->profilePictureValue;
-        std::ifstream profileImageIconPointer(profilePicturePath, std::ios::in | std::ios::binary | std::ios::ate);
-        if(profileImageIconPointer.is_open()){
-            std::streamsize size = profileImageIconPointer.tellg();
-            profileImageIconPointer.seekg(0, std::ios::beg);
-            std::vector<char> profileImageIcon(size);
-            profileImageIconPointer.read(profileImageIcon.data(), size);
-            profileImageIconPointer.close();
-            return profileImageIcon;
-        }
-        return {};
+    std::shared_ptr<vfs::Backing> IProfile::GetProfilePicture(){
+        const std::string profilePicturePath{*state.settings->profilePictureValue};
+        int fd{open((profilePicturePath).c_str(), O_RDONLY)};
+        if (fd < 0)
+            return state.os->assetFileSystem->OpenFile("skyline-logo.jpeg");
+        else
+            return std::make_shared<vfs::OsBacking>(fd, true);
     }
 }
