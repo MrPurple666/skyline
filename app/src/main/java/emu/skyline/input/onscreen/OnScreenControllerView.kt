@@ -296,8 +296,8 @@ class OnScreenControllerView @JvmOverloads constructor(context : Context, attrs 
         return controls.globalTextColor
     }
 
-    fun getBGColor() : Int {
-        return controls.globalBGColor
+    fun getBackGroundColor() : Int {
+        return controls.globalBackgroundColor
     }
 
     fun setOnButtonStateChangedListener(listener : OnButtonStateChangedListener) {
@@ -322,7 +322,7 @@ class OnScreenControllerView @JvmOverloads constructor(context : Context, attrs 
         invalidate()
     }
 
-    fun setBGColor(color : Int) {
+    fun setBackGroundColor(color : Int) {
         for (button in controls.allButtons) {
             button.config.backgroundColor = color
         }

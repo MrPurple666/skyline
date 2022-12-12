@@ -264,6 +264,6 @@ class Controls(onScreenControllerView : OnScreenControllerView) {
     /**
      * We can take any of the global background color variables from the buttons
      */
-    val globalBGColor
+    val globalBackgroundColor
         get() = circularButtons.first().config.backgroundColor
 }

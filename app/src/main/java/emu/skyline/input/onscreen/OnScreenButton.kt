@@ -109,13 +109,11 @@ abstract class OnScreenButton(
         renderCenteredText(canvas, buttonId.short!!, itemWidth.coerceAtMost(itemHeight) * 0.4f, bounds.centerX().toFloat(), bounds.centerY().toFloat(), alpha)
     }
 
-    fun renderColors(drawable : Drawable) {
+    private fun renderColors(drawable : Drawable) {
         when (drawable) {
             is GradientDrawable -> drawable.setColor(config.backgroundColor)
             is LayerDrawable -> {
-                for (i in 0 until drawable.numberOfLayers) {
-                    renderColors(drawable.getDrawable(i))
-                }
+                for (i in 0 until drawable.numberOfLayers) renderColors(drawable.getDrawable(i))
             }
             else -> drawable.setTint(config.backgroundColor)
         }
