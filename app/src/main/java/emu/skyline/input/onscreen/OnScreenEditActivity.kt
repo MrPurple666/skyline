@@ -5,13 +5,9 @@
 
 package emu.skyline.input.onscreen
 
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.*
-import android.view.ViewTreeObserver.OnGlobalLayoutListener
-import android.widget.FrameLayout
-import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -20,9 +16,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import emu.skyline.R
 import emu.skyline.databinding.OnScreenEditActivityBinding
 import emu.skyline.utils.PreferenceSettings
-import petrov.kristiyan.colorpicker.ColorPicker
+import emu.skyline.utils.SwitchColors
+import emu.skyline.utils.SwitchColors.*
+import petrov.kristiyan.colorpicker.DoubleColorPicker
+import petrov.kristiyan.colorpicker.DoubleColorPicker.OnChooseDoubleColorListener
 import javax.inject.Inject
-import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class OnScreenEditActivity : AppCompatActivity() {
@@ -61,8 +59,6 @@ class OnScreenEditActivity : AppCompatActivity() {
         toggleFabVisibility(false)
     }
 
-    private val colors = arrayOf(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 230, 255, 0), Color.argb(180, 180, 0, 230), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
-
     private val toggleAction : () -> Unit = {
         val buttonProps = binding.onScreenControllerView.getButtonProps()
         val checkArray = buttonProps.map { it.second }.toBooleanArray()
@@ -84,69 +80,26 @@ class OnScreenEditActivity : AppCompatActivity() {
     }
 
     private val paletteAction : () -> Unit = {
-        val backgroundColorPicker = createBackgroundColorPicker()
-        val textColorPicker = createTextColorPicker(backgroundColorPicker)
-        mergeColorPickers(textColorPicker, backgroundColorPicker)
-    }
-
-    private fun createBackgroundColorPicker() : ColorPicker {
-        return ColorPicker(this@OnScreenEditActivity).apply {
+        DoubleColorPicker(this@OnScreenEditActivity).apply {
             setTitle(this@OnScreenEditActivity.getString(R.string.osc_background_color))
+            setDefaultColorButton(binding.onScreenControllerView.getBackGroundColor())
             setRoundColorButton(true)
-            setColors(*colors.toIntArray())
-            setDefaultColorButton(binding.onScreenControllerView.getBGColor())
-            positiveButton.visibility = View.GONE
-            negativeButton.visibility = View.GONE
-            setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
-                override fun onChooseColor(position : Int, color : Int) {
-                    binding.onScreenControllerView.setBGColor(colors[position])
+            setColors(*SwitchColors.colors.toIntArray())
+            setDefaultDoubleColorButton(binding.onScreenControllerView.getTextColor())
+            setSecondTitle(this@OnScreenEditActivity.getString(R.string.osc_text_color))
+            setOnChooseDoubleColorListener(object : OnChooseDoubleColorListener {
+                override fun onChooseColor(position : Int, color : Int, position2 : Int, color2 : Int) {
+                    binding.onScreenControllerView.setBackGroundColor(SwitchColors.colors[position])
+                    binding.onScreenControllerView.setTextColor(SwitchColors.colors[position2])
                 }
 
-                override fun onCancel() {/*Nothing to do*/
-                }
-            })
-            show()
-            dismissDialog()
-        }
-    }
-
-    private fun createTextColorPicker(backgroundColorPicker : ColorPicker) : ColorPicker {
-        return ColorPicker(this@OnScreenEditActivity).apply {
-            setTitle(this@OnScreenEditActivity.getString(R.string.osc_text_color))
-            setRoundColorButton(true)
-            setColors(*colors.toIntArray())
-            setDefaultColorButton(binding.onScreenControllerView.getTextColor())
-            setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
-                override fun onChooseColor(position : Int, color : Int) {
-                    binding.onScreenControllerView.setTextColor(colors[position])
-                    backgroundColorPicker.positiveButton.performClick()
-                }
-
-                override fun onCancel() {/*Nothing to do*/
-                }
+                override fun onCancel() {}
             })
             show()
         }
-    }
 
-    private fun mergeColorPickers(mainColorPicker : ColorPicker, secondColorPicker : ColorPicker) {
-        with(mainColorPicker) {
-            dialogViewLayout.apply {
-                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.BOTTOM }
-                if (viewTreeObserver.isAlive) {
-                    viewTreeObserver.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
-                        override fun onGlobalLayout() {
-                            viewTreeObserver.removeOnGlobalLayoutListener(this)
-                            getmDialog()!!.window!!.setLayout((width * 1.2).roundToInt(), (height * 1.8).roundToInt())
-                        }
-                    })
-                }
-            }
-            (secondColorPicker.dialogViewLayout.parent as ViewGroup).removeView(secondColorPicker.dialogViewLayout)
-            getmDialog()?.addContentView(secondColorPicker.dialogViewLayout, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-        }
-    }
 
+    }
 
     private val actions : List<Pair<Int, () -> Unit>> = listOf(
         Pair(R.drawable.ic_palette, paletteAction),
