@@ -21,7 +21,7 @@ android {
     compileSdkVersion 33
     buildToolsVersion '33.0.0'
     defaultConfig {
-        applicationId "skyline.emu"
+        applicationId "skyline.purple"
 
         minSdkVersion 29
         targetSdkVersion 33
