@@ -37,7 +37,44 @@ class OnScreenEditActivity : AppCompatActivity() {
 
     private var currentButtonName = ""
 
-    private fun paletteAction() {
+    private fun toggleFabVisibility(visible : Boolean) {
+        fabMapping.forEach { (id, fab) ->
+            if (id != R.drawable.ic_close) {
+                if (visible) fab.show()
+                else fab.hide()
+            }
+        }
+    }
+
+    private val editAction = {
+        editMode = true
+        binding.onScreenControllerView.setEditMode(true)
+        toggleFabVisibility(false)
+    }
+
+    private val colors = arrayOf(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 255,105,180), Color.argb(180, 128, 112, 203), Color.argb(180, 252, 236, 82), Color.argb(180, 93, 46, 140), Color.argb(180, 46, 196, 182), Color.argb(180, 0, 117, 162), Color.argb(180, 235, 50, 95))
+
+    private val toggleAction : () -> Unit = {
+        val buttonProps = binding.onScreenControllerView.getButtonProps()
+        val checkArray = buttonProps.map { it.second }.toBooleanArray()
+
+        MaterialAlertDialogBuilder(this)
+            .setMultiChoiceItems(buttonProps.map {
+                val longText = getString(it.first.long!!)
+                if (it.first.short == longText) longText else "$longText: ${it.first.short}"
+            }.toTypedArray(), checkArray) { _, which, isChecked ->
+                checkArray[which] = isChecked
+            }.setPositiveButton(R.string.confirm) { _, _ ->
+                buttonProps.forEachIndexed { index, pair ->
+                    if (checkArray[index] != pair.second)
+                        binding.onScreenControllerView.setButtonEnabled(pair.first, checkArray[index])
+                }
+            }.setNegativeButton(R.string.cancel, null)
+            .setOnDismissListener { fullScreen() }
+            .show()
+    }
+
+    private val paletteAction : () -> Unit = {
         DoubleColorPicker(this@OnScreenEditActivity).apply {
             setTitle(this@OnScreenEditActivity.getString(R.string.osc_background_color))
             setDefaultColorButton(binding.onScreenControllerView.getButtonBackgroundColor())
