@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
           
@@ -63,23 +63,23 @@ jobs:
       - name: Rename APKs (Signed)
         if: ${{ env.IS_SKYLINE_SIGNED == 'true' }}
         run: |
-          mv app/build/outputs/apk/full/release/app-full-release.apk skyline-$GITHUB_RUN_NUMBER-release.apk
+          mv app/build/outputs/apk/full/release/app-full-release.apk skyline-$GITHUB_RUN_NUMBER-release_MrPurple.apk
 
       - name: Upload Signed Release APK
         if: ${{ env.IS_SKYLINE_SIGNED == 'true' }}
         uses: actions/upload-artifact@v3
         with:
-          name: skyline-${{ github.run_number }}-release.apk
-          path: skyline-${{ github.run_number }}-release.apk
+          name: skyline-${{ github.run_number }}-release_MrPurple.apk
+          path: skyline-${{ github.run_number }}-release_MrPurple.apk
 
       - name: Rename APKs (Unsigned)
         if: ${{ env.IS_SKYLINE_SIGNED == 'false' }}
         run: |
-          mv app/build/outputs/apk/full/release/app-full-release.apk skyline-$GITHUB_RUN_NUMBER-unsigned-release.apk
+          mv app/build/outputs/apk/full/release/app-full-release.apk skyline-$GITHUB_RUN_NUMBER-unsigned-release_MrPurple.apk
 
       - name: Upload Unsigned Release APK
         if: ${{ env.IS_SKYLINE_SIGNED == 'false' }}
         uses: actions/upload-artifact@v3
         with:
-          name: skyline-${{ github.run_number }}-unsigned-release.apk
-          path: skyline-${{ github.run_number }}-unsigned-release.apk
+          name: skyline-${{ github.run_number }}-unsigned-release_MrPurple.apk
+          path: skyline-${{ github.run_number }}-unsigned-release_MrPurple.apk
