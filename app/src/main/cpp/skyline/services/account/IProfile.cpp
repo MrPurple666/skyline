@@ -8,7 +8,6 @@
 #include "IProfile.h"
 
 namespace skyline::service::account {
-
     IProfile::IProfile(const DeviceState &state, ServiceManager &manager, const UserId &userId) : userId(userId), BaseService(state, manager) {}
 
     Result IProfile::Get(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
@@ -45,7 +44,7 @@ namespace skyline::service::account {
 
     Result IProfile::GetImageSize(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         std::shared_ptr<vfs::Backing> profileImageIcon{GetProfilePicture()};
-        response.Push<u32>(profileImageIcon->size);
+        response.Push(static_cast<u32>(profileImageIcon->size));
 
         return {};
     }
@@ -54,19 +53,20 @@ namespace skyline::service::account {
         std::shared_ptr<vfs::Backing> profileImageIcon{GetProfilePicture()};
         std::vector<char> profileImage(profileImageIcon->size);
 
-        profileImageIcon->Read(skyline::span<char>(profileImage), 0);
+        profileImageIcon->Read(span<char>(profileImage), 0);
 
         request.outputBuf.at(0).copy_from(profileImage);
-        response.Push<u32>(profileImageIcon->size);
+        response.Push(static_cast<u32>(profileImageIcon->size));
 
         return {};
     }
 
-    std::shared_ptr<vfs::Backing> IProfile::GetProfilePicture(){
-        const std::string profilePicturePath{*state.settings->profilePictureValue};
+    std::shared_ptr<vfs::Backing> IProfile::GetProfilePicture() {
+        std::string profilePicturePath{*state.settings->profilePictureValue};
         int fd{open((profilePicturePath).c_str(), O_RDONLY)};
         if (fd < 0)
-            return state.os->assetFileSystem->OpenFile("skyline-logo.jpeg");
+            // If we can't find the profile picture then just return the placeholder profile picture
+            return state.os->assetFileSystem->OpenFile("profile_picture.jpeg");
         else
             return std::make_shared<vfs::OsBacking>(fd, true);
     }

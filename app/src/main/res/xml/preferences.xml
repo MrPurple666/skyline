@@ -70,7 +70,7 @@
             app:key="username_value"
             app:limit="31"
             app:title="@string/username" />
-        <emu.skyline.preference.ImagePickerPreference
+        <emu.skyline.preference.ProfilePicturePreference
             app:key="profile_picture_value"
             app:title="@string/profile_picture" />
         <emu.skyline.preference.IntegerListPreference

@@ -39,7 +39,7 @@ namespace skyline::service::account {
         Result LoadImage(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
 
         /**
-         * @brief Tries to get the the user's profile image. If not found, returns Skyline's icon.
+         * @brief Tries to get the user's profile picture. If not found, returns the default one
          * @return A shared pointer to a Backing object of the profile picture
          */
         std::shared_ptr<vfs::Backing> GetProfilePicture();
