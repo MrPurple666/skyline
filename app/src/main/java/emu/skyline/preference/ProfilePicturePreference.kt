@@ -25,58 +25,58 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-class ImagePickerPreference @JvmOverloads constructor(context : Context, attrs : AttributeSet? = null, defStyleAttr : Int = R.attr.preferenceStyle) : Preference(context, attrs, defStyleAttr) {
+class ProfilePicturePreference @JvmOverloads constructor(context : Context, attrs : AttributeSet? = null, defStyleAttr : Int = R.attr.preferenceStyle) : Preference(context, attrs, defStyleAttr) {
     private val pickMedia = (context as ComponentActivity).registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         val profilePictureDir = SkylineApplication.instance.getPublicFilesDir().canonicalPath + "/switch/nand/system/save/8000000000000010/su/avators"
         val profilePictureName = "profile_picture.jpeg"
-        try{
-            if (uri != null) {  // The user selected a photo.
+        try {
+            if (uri != null) { // The user selected a picture
                 PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, "$profilePictureDir/$profilePictureName").apply()
                 File(profilePictureDir).mkdirs()
-                context.applicationContext.contentResolver.let { contentResolver: ContentResolver ->
-                    val readUriPermission: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                context.applicationContext.contentResolver.let { contentResolver : ContentResolver ->
+                    val readUriPermission : Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
                     contentResolver.takePersistableUriPermission(uri, readUriPermission)
-                    contentResolver.openInputStream(uri)?.use { inputStream: InputStream ->
+                    contentResolver.openInputStream(uri)?.use { inputStream : InputStream ->
                         var bitmap = BitmapFactory.decodeStream(inputStream)
-                        // Compress the image.
-                        bitmap = Bitmap.createScaledBitmap(bitmap,256,256,false)
+                        // Compress the picture
+                        bitmap = Bitmap.createScaledBitmap(bitmap, 256, 256, false)
                         StoreBitmap(bitmap, "$profilePictureDir/$profilePictureName")
                     }
                 }
-            } else {    // User didn't select a photo. As such, if the user already had one, it's assumed that he wants to remove it.
-                if(File("$profilePictureDir/$profilePictureName").exists()){
+            } else { // No picture was selected, clear the profile picture if one was already set
+                if (File("$profilePictureDir/$profilePictureName").exists()) {
                     File("$profilePictureDir/$profilePictureName").delete()
                 }
-                PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, "No photo selected").apply()
+                PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, "No picture selected").apply()
             }
             notifyChanged()
-        } catch (e: Exception){
+        } catch (e : Exception) {
             e.printStackTrace()
         }
     }
 
     init {
-        summaryProvider = SummaryProvider<ImagePickerPreference> { preference ->
-            Uri.decode(preference.getPersistedString("No photo selected"))
+        summaryProvider = SummaryProvider<ProfilePicturePreference> { preference ->
+            Uri.decode(preference.getPersistedString("No picture selected"))
         }
     }
 
     override fun onClick() = pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
 
     /**
-     * Given a bitmap, saves it in the specified location.
+     * Given a bitmap, saves it in the specified location
      */
-    private fun StoreBitmap(bitmap: Bitmap, filePath: String){
-        try{
+    private fun StoreBitmap(bitmap : Bitmap, filePath : String) {
+        try {
             // Create the file where the bitmap will be stored
-            val file: File = File(filePath)
+            val file = File(filePath)
             file.createNewFile()
             // Store bitmap as JPEG
             val outputFile = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputFile)
             outputFile.flush()
             outputFile.close()
-        } catch (e: Exception) {
+        } catch (e : Exception) {
             e.printStackTrace()
         }
     }
