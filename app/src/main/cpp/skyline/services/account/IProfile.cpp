@@ -51,11 +51,8 @@ namespace skyline::service::account {
 
     Result IProfile::LoadImage(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         std::shared_ptr<vfs::Backing> profileImageIcon{GetProfilePicture()};
-        std::vector<char> profileImage(profileImageIcon->size);
 
-        profileImageIcon->Read(span<char>(profileImage), 0);
-
-        request.outputBuf.at(0).copy_from(profileImage);
+        profileImageIcon->Read(span(request.outputBuf.at(0)).first(profileImageIcon->size), 0);
         response.Push(static_cast<u32>(profileImageIcon->size));
 
         return {};
