@@ -61,7 +61,7 @@ class OnScreenEditActivity : AppCompatActivity() {
         toggleFabVisibility(false)
     }
 
-    private val colors = arrayOf(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 230, 255, 0), Color.argb(180, 180, 0, 230), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
+    private val colors = arrayOf(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 230, 255, 0), Color.argb(180, 128, 112, 203), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0), Color.argb(180, 252, 236, 82), Color.argb(180, 93, 46, 140), Color.argb(180, 46, 196, 182), Color.argb(180, 0, 117, 162))
 
     private val toggleAction : () -> Unit = {
         val buttonProps = binding.onScreenControllerView.getButtonProps()
