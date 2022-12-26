@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="log_level">
+        <item>Error</item>
+        <item>Warn</item>
+        <item>Info</item>
+        <item>Debug</item>
+        <item>Verbose</item>
+    </string-array>
+    <string-array name="layout_type">
+        <item>Lista</item>
+        <item>Grade</item>
+        <item>Grade Compacta</item>
+    </string-array>
+    <string-array name="app_theme">
+        <item>Claro</item>
+        <item>Escuro</item>
+        <item>Usar padrão do sistema</item>
+    </string-array>
+    <string-array name="system_languages">
+        <item>American English</item>
+        <item>British English</item>
+        <item>Français (French)</item>
+        <item>Français Canadien (Canadian French)</item>
+        <item>Deutsch (German)</item>
+        <item>Español (Spanish)</item>
+        <item>Español Latinoamericano (Latin American Spanish)</item>
+        <item>Italiano (Italian)</item>
+        <item>Nederlands (Dutch)</item>
+        <item>Português (Portuguese)</item>
+        <item>Português do Brasil (Brazilian Portuguese)</item>
+        <item>Русский (Russian)</item>
+        <item>日本語 (Japanese)</item>
+        <item>汉语 (Chinese)</item>
+        <item>繁體中文 (Traditional Chinese)</item>
+        <item>简体中文 (Simplified Chinese)</item>
+        <item>한국어 (Korean)</item>
+        <item>臺語 (Taiwanese)</item>
+    </string-array>
+    <integer-array name="system_languages_val">
+        <item>1</item>  <!-- American English -->
+        <item>12</item> <!-- British English -->
+        <item>2</item>  <!-- French -->
+        <item>13</item> <!-- Canadian French -->
+        <item>3</item>  <!-- German -->
+        <item>5</item>  <!-- Spanish -->
+        <item>14</item> <!-- Latin American Spanish -->
+        <item>4</item>  <!-- Italian -->
+        <item>8</item>  <!-- Dutch -->
+        <item>9</item>  <!-- Portuguese -->
+        <item>17</item> <!-- Brazilian Portuguese -->
+        <item>10</item> <!-- Russian -->
+        <item>0</item>  <!-- Japanese -->
+        <item>6</item>  <!-- Chinese -->
+        <item>16</item> <!-- Traditional Chinese -->
+        <item>15</item> <!-- Simplified Chinese -->
+        <item>7</item>  <!-- Korean -->
+        <item>11</item> <!-- Taiwanese -->
+    </integer-array>
+    <string-array name="system_region">
+        <item>Auto</item>
+        <item>Japan</item>
+        <item>The Americas</item>
+        <item>Europe</item>
+        <item>Australia / New Zealand</item>
+        <item>Hong Kong / Taiwan / South Korea</item>
+        <item>China</item>
+    </string-array>
+    <integer-array name="system_region_val">
+        <item>-1</item> <!-- Auto -->
+        <item>0</item>  <!-- Japan -->
+        <item>1</item>  <!-- The Americas -->
+        <item>2</item>  <!-- Europe -->
+        <item>3</item>  <!-- Australia / New Zealand -->
+        <item>4</item>  <!-- Hong Kong / Taiwan / South Korea -->
+        <item>5</item>  <!-- China -->
+    </integer-array>
+    <string-array name="aspect_ratios">
+        <item>16:9 (Switch, Recomendado)</item>
+        <item>21:9 (Ultrawide Mods)</item>
+        <item>Proporção do dispositivo (esticar para caber)</item>
+    </string-array>
+    <string-array name="orientation_entries">
+        <item>Auto</item>
+        <item>Landscape</item>
+        <item>Landscape (reverse)</item>
+    </string-array>
+    <integer-array name="orientation_values">
+        <item>6</item>
+        <item>0</item>
+        <item>8</item>
+    </integer-array>
+    <string-array name="credits_entries">
+        <item>xnoro - Mamador de pika</item>
+        <item>Zpsico - Chad lindo</item>
+        <item>Barroslukas1 - Walter White peludo</item>
+        <item>GH - Budsfri</item>
+        <item>Shelby - Matador de gente</item>
+        <item>Anakin - Banido</item>
+        <item>Polystation - proibido</item>
+        <item>Morax - Em treinamento</item>
+        <item>Kirito - GayShin</item>
+        <item>Dablio - boiolaShin</item>
+        <item>Cuidado com o vayu ele pode morrer, se morrer chame o Mamador de pika @xnoro no t.me/skylinebrasil</item>
+    </string-array>
+</resources>
