@@ -66,8 +66,6 @@
 <string name="respect_display_cutout">"Respeite o recorte da tela"</string>
 <string name="respect_display_cutout_enabled">"Não desenhe elementos da interface do usuário na área de recorte"</string>
 <string name="respect_display_cutout_disabled">"Permitir que os elementos da interface do usuário sejam desenhados na área de recorte"</string>
-<string name="executor_slot_count_scale">"Escala de Contagem de Slots do Executor"</string>
-<string name="executor_slot_count_scale_desc">"Escala controlando o número máximo de execuções simultâneas de GPU (mais alto às vezes pode ter um desempenho melhor, mas usará mais RAM)"</string>
 <string name="executor_slot_count_scale">Escala de Contagem de Slots do Executor</string>
 <string name="executor_slot_count_scale_desc">Escala controlando o número máximo de execuções simultâneas de GPU (mais alto às vezes pode ter um desempenho melhor, mas usará mais RAM)</string>
 <string name="executor_flush_threshold">Limite de Flush Threshold</string>
