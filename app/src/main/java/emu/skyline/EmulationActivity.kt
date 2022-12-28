@@ -261,8 +261,6 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
         force60HzRefreshRate(!preferenceSettings.maxRefreshRate)
         getSystemService<DisplayManager>()?.registerDisplayListener(this, null)
-        if (preferenceSettings.forceMaxGpuClocks)
-            GpuDriverHelper.forceMaxGpuClocks(true)
 
         binding.gameView.setOnTouchListener(this)
 
@@ -295,9 +293,6 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
     override fun onResume() {
         super.onResume()
-
-        if (preferenceSettings.forceMaxGpuClocks)
-            GpuDriverHelper.forceMaxGpuClocks(true)
 
         changeAudioStatus(true)
 
