@@ -91,16 +91,15 @@
         <item>8</item>
     </integer-array>
     <string-array name="credits_entries">
-        <item>xnoro - Mamador de pika</item>
-        <item>Zpsico - Chad lindo</item>
-        <item>Barroslukas1 - Walter White peludo</item>
-        <item>GH - Budsfri</item>
-        <item>Shelby - Matador de gente</item>
-        <item>Anakin - Banido</item>
-        <item>Polystation - proibido</item>
-        <item>Morax - Em treinamento</item>
-        <item>Kirito - GayShin</item>
-        <item>Dablio - boiolaShin</item>
-        <item>Cuidado com o vayu ele pode morrer, se morrer chame o Mamador de pika @xnoro no t.me/skylinebrasil</item>
+        <item>xnoro</item>
+        <item>Zpsico</item>
+        <item>Barroslukas1</item>
+        <item>GH</item>
+        <item>Shelby</item>
+        <item>All Skyline Devs and contributors</item>
+        <item>Adams Willber</item>
+        <item>Morax</item>
+        <item>Ayato</item>
+        <item>Danilo and Iury Medina</item>
     </string-array>
 </resources>

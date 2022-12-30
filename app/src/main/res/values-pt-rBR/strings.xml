@@ -66,8 +66,13 @@
 <string name="respect_display_cutout">"Respeite o recorte da tela"</string>
 <string name="respect_display_cutout_enabled">"Não desenhe elementos da interface do usuário na área de recorte"</string>
 <string name="respect_display_cutout_disabled">"Permitir que os elementos da interface do usuário sejam desenhados na área de recorte"</string>
-<string name="executor_slot_count_scale">"Escala de Contagem de Slots do Executor"</string>
-<string name="executor_slot_count_scale_desc">"Escala controlando o número máximo de execuções simultâneas de GPU (mais alto às vezes pode ter um desempenho melhor, mas usará mais RAM)"</string>
+<string name="executor_slot_count_scale">Escala de Contagem de Slots do Executor</string>
+<string name="executor_slot_count_scale_desc">Escala controlando o número máximo de execuções simultâneas de GPU (mais alto às vezes pode ter um desempenho melhor, mas usará mais RAM)</string>
+<string name="executor_flush_threshold">Limite de Flush Threshold</string>
+<string name="executor_flush_threshold_desc">Controla com que frequência o trabalho é liberado para a GPU</string>
+<string name="force_max_gpu_clocks">Forçar clocks máximos da GPU</string>
+<string name="force_max_gpu_clocks_desc">Força a GPU a funcionar em sua velocidade de clock máxima possível (pode causar aquecimento excessivo e uso de energia)</string>
+<string name="force_max_gpu_clocks_desc_unsupported">Seu dispositivo não suporta forçar o clock máximo da GPU</string>
 <string name="hacks">"Hacks"</string>
 <string name="enable_fast_gpu_readback">"Ativar leitura rápida da GPU"</string>
 <string name="enable_fast_gpu_readback_enabled">"A leitura rápida da GPU está ativada (quebrará alguns jogos, mas outros terão desempenho superior)"</string>
@@ -170,4 +175,8 @@
 <string name="input_hint">"Entrada de texto"</string>
 <string name="expand_button_title" tools:override="true">"Expandir"</string>
 <string name="undo">"Desfazer"</string>
+<<<<<<< HEAD
 </resources>
+=======
+</resources>
+>>>>>>> d74d0658 (fixup merge shit (pt-rBR))
