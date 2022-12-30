@@ -175,8 +175,4 @@
 <string name="input_hint">"Entrada de texto"</string>
 <string name="expand_button_title" tools:override="true">"Expandir"</string>
 <string name="undo">"Desfazer"</string>
-<<<<<<< HEAD
 </resources>
-=======
-</resources>
->>>>>>> d74d0658 (fixup merge shit (pt-rBR))
