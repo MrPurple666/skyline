@@ -564,21 +564,11 @@ namespace skyline::gpu::interconnect {
         if (!slot->nodes.empty()) {
             TRACE_EVENT("gpu", "CommandExecutor::Submit");
 
-            if (callback && *state.settings->useDirectMemoryImport)
-                waiterThread.Queue(cycle, std::move(callback));
-            else
-                waiterThread.Queue(cycle, {});
-
             SubmitInternal();
             submissionNumber++;
 
-        } else {
-            if (callback && *state.settings->useDirectMemoryImport)
-                waiterThread.Queue(nullptr, std::move(callback));
         }
 
-        if (callback && !*state.settings->useDirectMemoryImport)
-            callback();
 
         ResetInternal();
     }
