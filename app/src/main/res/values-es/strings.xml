@@ -29,16 +29,25 @@
     <string name="failed_open_directory">No se pudo encontrar un explorador de archivos externo para abrir el directorio interno de skyline </string>
     <string name="theme">Tema</string>
     <string name="layout_type">Tipo de vista de juegos</string>
+    <string name="group_by_format">Agrupar Juegos por Formato</string>
+    <string name="group_by_format_desc_off">Los juegos se mostrarán como una sola lista</string>
+    <string name="group_by_format_desc_on">Los juegos se agruparán por formato</string>
+    <string name="sort_apps_by">Ordenar juegos por</string>
     <string name="select_action">Siempre Mostrar Información Del Juego</string>
     <string name="select_action_desc_on">La información del juego se mostrará al hacer clic en un juego</string>
     <string name="select_action_desc_off">La información del juego solo se mostrará al mantener presionado un juego</string>
     <string name="perf_stats">Mostrar Estadísticas de Rendimiento</string>
+    <string name="shader_cache">Desactivar caché de shaders</string>
     <string name="perf_stats_desc_off">No se mostrarán estadísticas del rendimiento </string>
     <string name="perf_stats_desc_on">Se mostrarán las estadisticas de rendimiento en la esquina superior izquierda</string>
+    <string name="shader_cache_disabled">No se cargarán los shaders en caché. Podría causar tartamudeo</string>
+    <string name="shader_cache_enabled">Se cargarán los shaders en caché. Podría reducir bastante el stuttering </string>
     <string name="log_level">Nivel de Log</string>
     <string name="gpu_driver_config">Configuración del driver del GPU</string>
     <string name="gpu_driver_config_desc">Driver activo %1$s</string>
     <string name="gpu_driver_config_desc_unsupported">Tu dispositivo no soporta drivers personalizados </string>
+    <string name="app_language">Idioma de la aplicación</string>
+    <string name="app_language_default">Usar idioma del sistema</string>
     <!-- Settings - System -->
     <string name="system">Sistema</string>
     <string name="use_docked">Usar Modo Dock</string>
@@ -87,6 +96,10 @@
     <string name="enable_fast_gpu_readback">Habilitar la verificación rápida del GPU</string>
     <string name="enable_fast_gpu_readback_enabled">La verificación rápida de GPU está habilitada (Dañara algunos juegos pero aumentara el rendimiento en otros)</string>
     <string name="enable_fast_gpu_readback_disabled">La verificación rápida de GPU está deshabilitada (Asegura una mayor precisión)</string>
+    <string name="disable_subgroup_shuffle">Desactivar la redistribución de subgrupos de GPU</string>
+    <string name="disable_subgroup_shuffle_enabled">Las redistribuciones de subgrupos de shaders están desactivadas. Puede causar serios problemas gráficos</string>
+    <string name="disable_subgroup_shuffle_disabled">Las redistribuciones de subgrupos de shaders están activadas. Máxima precisión garantizada</string>
+
     <!-- Settings - Audio -->
     <string name="audio">Audio</string>
     <string name="disable_audio_output">Desactivar salida de audio</string>
@@ -130,8 +143,8 @@
     <string name="config_controller">Configurar control</string>
     <string name="controller_type">Tipo de control</string>
     <string name="none">Ninguno</string>
-    <string name="handheld_procon">Portátil + Control Pro</string>
-    <string name="procon">Control Pro</string>
+    <string name="handheld_procon">Portátil + Pro controller </string>
+    <string name="procon">Pro Controller </string>
     <string name="ljoycon">Joy-Con izquierdo</string>
     <string name="rjoycon">Joy-Con derecho </string>
     <string name="general">General</string>

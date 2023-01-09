@@ -29,16 +29,25 @@
     <string name="failed_open_directory">Es wurde kein Dateimanager zum Anzeigen des internen Ordners von Skyline gefunden</string>
     <string name="theme">Theme</string>
     <string name="layout_type">Spieldarstellung</string>
+    <string name="group_by_format">Gruppiere Spiele nach Format</string>
+    <string name="group_by_format_desc_off">Spiele werden in einer einzigen Liste angezeigt</string>
+    <string name="group_by_format_desc_on">Spiele werden nach ihrem Dateiformat gruppiert</string>
+    <string name="sort_apps_by">Spielesortierung</string>
     <string name="select_action">Spielinformationen immer anzeigen</string>
     <string name="select_action_desc_on">Spielinformationen werden beim Antippen eines Spiels angezeigt </string>
     <string name="select_action_desc_off">Spielinformationen werden nur angezeigt, wenn ein Spiel länger angetippt wird</string>
     <string name="perf_stats">Leistungsstatistiken anzeigen</string>
+    <string name="shader_cache">Deaktiviere Shader Cache</string>
     <string name="perf_stats_desc_off">Leistungsstatistiken werden ausgeblendet</string>
     <string name="perf_stats_desc_on">Leistungsstatistiken werden in der oberen linken Ecke angezeigt</string>
+    <string name="shader_cache_disabled">Gespeicherte Shader werden nicht geladen, führt zu Ruckeln</string>
+    <string name="shader_cache_enabled">Gespeicherte Shader werden geladen, kann Ruckeln deutlich vermindern</string>
     <string name="log_level">Log Stufe</string>
     <string name="gpu_driver_config">GPU Treiber Konfiguration</string>
     <string name="gpu_driver_config_desc">Aktiver Treiber: %1$s</string>
     <string name="gpu_driver_config_desc_unsupported">Dein Gerät unterstützt keine anderen Treiber</string>
+    <string name="app_language">App-Sprache</string>
+    <string name="app_language_default">Verwende Systemsprache</string>
     <!-- Settings - System -->
     <string name="system">System</string>
     <string name="use_docked">Verwende Docked Modus</string>
@@ -87,6 +96,10 @@
     <string name="enable_fast_gpu_readback">Aktiviere schnelle GPU Rück-Lesung</string>
     <string name="enable_fast_gpu_readback_enabled">Schnelle GPU Rück-Lesung ist aktiviert (Wird in manchen Spielen Fehler verursachen, aber in anderen Spielen für eine bessere Leistung sorgen)</string>
     <string name="enable_fast_gpu_readback_disabled">Schnelle GPU Rück-Lesung ist deaktiviert (Sorgt für die höchste Genauigkeit)</string>
+    <string name="disable_subgroup_shuffle">Deaktiviere GPU Untergruppenmischung</string>
+    <string name="disable_subgroup_shuffle_enabled">Operationen zur Shader Untergruppenmischung sind deaktiviert, kann zu starken grafischen Fehlern führen </string>
+    <string name="disable_subgroup_shuffle_disabled">Operationen zur Shader Untergruppenmischung sind aktiviert, gewährleistet maximale Genauigkeit </string>
+
     <!-- Settings - Audio -->
     <string name="audio">Audio</string>
     <string name="disable_audio_output">Audioausgabe deaktivieren</string>

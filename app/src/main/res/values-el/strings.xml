@@ -29,16 +29,25 @@
     <string name="failed_open_directory">Δεν βρέθηκε εξωτερικός διαχειριστής αρχείων για να ανοίξει το ευρετήριο της Skyline</string>
     <string name="theme">Θέμα</string>
     <string name="layout_type">Οθόνη διάταξης παιχνιδιών</string>
+    <string name="group_by_format">Ομαδοποίηση παιχνιδιών ανά μορφή</string>
+    <string name="group_by_format_desc_off">Τα παιχνίδια θα εμφανίζονται ως ενιαία λίστα</string>
+    <string name="group_by_format_desc_on">Τα παιχνίδια θα εμφανίζονται ομαδοποιημένα κατά μορφή</string>
+    <string name="sort_apps_by">Σειρά ταξινόμησης παιχνιδιών</string>
     <string name="select_action">Πάντα εμφάνισε τις πληροφορίες παιχνιδιού</string>
     <string name="select_action_desc_on">Οι πληροφορίες του παιχνιδιού θα εμφανιστούν όταν πατηθεί το παιχνίδι</string>
     <string name="select_action_desc_off">Οι πληροφορίες του παιχνιδιού θα εμφανιστούν μόνο όταν πατηθεί παρατεταμένα το παιχνίδι</string>
     <string name="perf_stats">Εμφάνιση στατιστικών απόδοσης</string>
+    <string name="shader_cache">Απενεργοποίηση κρυφής μνήμης shader</string>
     <string name="perf_stats_desc_off">Τα στατιστικά απόδοσης δεν θα εμφανίζονται</string>
     <string name="perf_stats_desc_on">Τα στατιστικά απόδοσης θα εμφανίζονται στη πάνω-αριστερή γωνία</string>
+    <string name="shader_cache_disabled">Τα αποθηκευμένα shaders δεν θα φορτωθούν, θα προκαλέσουν τραυλισμό</string>
+    <string name="shader_cache_enabled">Τα αποθηκευμένα shaders θα φορτωθούν, μπορούν να μειώσουν σημαντικά τον τραυλισμό</string>
     <string name="log_level">Επίπεδο καταγραφής</string>
     <string name="gpu_driver_config">Διαμόρφωση οδηγού GPU</string>
     <string name="gpu_driver_config_desc">Ενεργοποίηση οδηγού: %1$s</string>
     <string name="gpu_driver_config_desc_unsupported">Η συσκευή σου δεν υποστηρίζει προσαρμοσμένους οδηγούς</string>
+    <string name="app_language">Γλώσσα εφαρμογής</string>
+    <string name="app_language_default">Χρησιμοποιήστε την προεπιλογή συστήματος</string>
     <!-- Settings - System -->
     <string name="system">Σύστημα</string>
     <string name="use_docked">Χρησιμοποίησε λειτουργία σύνδεσης</string>
@@ -87,6 +96,10 @@
     <string name="enable_fast_gpu_readback">Ενεργοποίηση γρήγορης ανάγνωσης GPU</string>
     <string name="enable_fast_gpu_readback_enabled">Η γρήγορη ανάγνωση GPU είναι ενεργοποιημένη (Θα σπάσει ορισμένα παιχνίδια, αλλά άλλα θα έχουν υψηλότερη απόδοση)</string>
     <string name="enable_fast_gpu_readback_disabled">Η γρήγορη ανάγνωση GPU είναι απενεργοποιημένη (Εξασφαλίζει την υψηλότερη ακρίβεια)</string>
+    <string name="disable_subgroup_shuffle">Απενεργοποιήστε τη τυχαία αναπαραγωγή υποομάδας GPU</string>
+    <string name="disable_subgroup_shuffle_enabled">Οι λειτουργίες τυχαίας αναπαραγωγής υποομάδας Shader είναι απενεργοποιημένες, ενδέχεται να προκαλέσουν σοβαρά προβλήματα γραφικών</string>
+    <string name="disable_subgroup_shuffle_disabled">Οι λειτουργίες τυχαίας αναπαραγωγής της υποομάδας Shader είναι ενεργοποιημένες, διασφαλίζοντας τη μέγιστη ακρίβεια</string>
+
     <!-- Settings - Audio -->
     <string name="audio">Ήχος</string>
     <string name="disable_audio_output">Απενεργοποιήστε την έξοδο ήχου</string>

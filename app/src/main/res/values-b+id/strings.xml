@@ -12,7 +12,7 @@
     <string name="logs_not_found">Tidak ada log yang dibuat selama proses terakhir</string>
     <!-- Main -->
     <string name="all">Semua</string>
-    <string name="metadata_missing">Metadata Hilang</string>
+    <string name="metadata_missing">Metadata Tidak Tersedia</string>
     <string name="icon">Ikon</string>
     <string name="no_rom">Tidak dapat menemukan ROM apa pun</string>
     <string name="pin">Pin</string>
@@ -29,23 +29,32 @@
     <string name="failed_open_directory">Tidak dapat mencari aplikasi manajemen berkas untuk membuka direktori Skyline</string>
     <string name="theme">Tema</string>
     <string name="layout_type">Letak Tampilan Game</string>
+    <string name="group_by_format">Kelompokan Game Sesuai Format</string>
+    <string name="group_by_format_desc_off">Game akan ditampilkan dalam satu daftar. </string>
+    <string name="group_by_format_desc_on">Game akan ditampilkan dalam format berkelompok </string>
+    <string name="sort_apps_by">Sortir Urutan Game</string>
     <string name="select_action">Selalu Perlihatkan Informasi Game</string>
     <string name="select_action_desc_on">Informasi game akan muncul ketika di klik</string>
     <string name="select_action_desc_off">Informasi game akan muncul ketika di tahan</string>
     <string name="perf_stats">Perlihatkan Statistik Performa</string>
+    <string name="shader_cache">Matikan shader cache</string>
     <string name="perf_stats_desc_off">Statistik Performa tidak akan di perlihatkan</string>
     <string name="perf_stats_desc_on">Statistik Performa akan perlihatkan di pojok kiri-atas</string>
+    <string name="shader_cache_disabled">Shader cache tidak akan digunakan, akan menyebabkan macet-macet</string>
+    <string name="shader_cache_enabled">Shader Cache akan digunakan, dapat mengurangi macet-macet</string>
     <string name="log_level">Jenis Log</string>
     <string name="gpu_driver_config">Pengaturan Driver GPU</string>
     <string name="gpu_driver_config_desc">Driver aktif \'%1$s\'</string>
-    <string name="gpu_driver_config_desc_unsupported">Perangkat GPU kamu tidak mendukung custom driver</string>
+    <string name="gpu_driver_config_desc_unsupported">Perangkat kamu tidak mendukung custom driver</string>
+    <string name="app_language">Bahasa Aplikasi</string>
+    <string name="app_language_default">Gunakan Bawaan Sistem</string>
     <!-- Settings - System -->
     <string name="system">Sistem</string>
     <string name="use_docked">Gunakan Mode Docked</string>
     <string name="handheld_enabled">Emulator akan berjalan di mode handheld</string>
     <string name="docked_enabled">Emulator akan berjalan di mode docked</string>
     <string name="username">Nama Pengguna</string>
-    <string name="profile_picture">Photo Profil</string>
+    <string name="profile_picture">Foto Profil</string>
     <string name="system_language">Bahasa Sistem</string>
     <string name="system_region">Wilayah Sistem</string>
     <!-- Settings - Keys -->
@@ -54,26 +63,26 @@
     <string name="title_keys">Title Keys</string>
     <string name="import_keys_success">Keys berhasil terpasang</string>
     <string name="import_keys_invalid_input_path">Direktori Keys yang dipilih tidak valid</string>
-    <string name="import_keys_invalid_keys">Keys yang di impor tidak valid</string>
+    <string name="import_keys_invalid_keys">Keys yang kamu impor tidak valid</string>
     <string name="import_keys_delete_previous_failed">Gagal menghapus keys yang telah terinstal</string>
     <string name="import_keys_move_failed">Gagal memindahkan keys ke direktori internal</string>
     <!-- Settings - Display -->
     <string name="display">Tampilan</string>
     <string name="screen_orientation">Rotasi Layar</string>
-    <string name="force_triple_buffering">Paksa Buffering tiga kali lipat</string>
+    <string name="force_triple_buffering">Paksa Tripple Buffering</string>
     <string name="triple_buffering_enabled">Gunakan setidaknya tiga swapchain buffer (FPS lebih tinggi tapi menambah delay pada tombol)</string>
     <string name="triple_buffering_disabled">Gunakan setidaknya dua swapchain buffer (FPS rendah tapi mengurangi delay pada tombol)</string>
     <string name="disable_frame_throttling">Matikan Frame Throttling</string>
-    <string name="disable_frame_throttling_enabled">Game akan berjalan secepat mungkin (Hanya untuk ngetest)\n\n<b>Note:</b> Metode alternative digunakan untuk menghitung FPS, angkanya tidak bisa dibandingkan dengan angka FPS yang dibatasi</string>
+    <string name="disable_frame_throttling_enabled">Game akan mencoba untuk berjalan secepat mungkin (Hanya untuk ngetest)\n\n<b>Note:</b> Metode alternative digunakan untuk menghitung FPS, angkanya tidak bisa dibandingkan dengan angka FPS yang dibatasi</string>
     <string name="disable_frame_throttling_disabled">Izinkan game hanya untuk menyesuaikan fps dengan refresh rate layar</string>
-    <string name="max_refresh_rate">Gunakan Refresh Rate Maksimal</string>
+    <string name="max_refresh_rate">Gunakan Refresh Rate Layar Maksimal</string>
     <string name="max_refresh_rate_enabled">Atur refresh rate layar setinggi mungkin (Dapat menyebabkan bug di banyak game)</string>
     <string name="max_refresh_rate_disabled">Atur refresh rate layar jadi 60hz</string>
     <string name="aspect_ratio">Aspek Rasio</string>
     <string name="respect_display_cutout">Sesuaikan dengan potongan layar</string>
     <string name="respect_display_cutout_enabled">Jangan gunakan elemen UI di bagian layar yang terpotong</string>
     <string name="respect_display_cutout_disabled">Izinkan elemen UI untuk menggunakan bagian layar yang terpotong</string>
-    <string name="executor_slot_count_scale">Jumlah Slot Skala Eksekusi</string>
+    <string name="executor_slot_count_scale">Jumlah Skala Executor Slot</string>
     <string name="executor_slot_count_scale_desc">Atur jumlah skala maksimum eksekusi GPU (Lebih tinggi memungkinkan lebih baik tetapi akan menggunakan lebih banyak RAM) </string>
     <string name="executor_flush_threshold">Eksekusi Flush Threshold</string>
     <string name="executor_flush_threshold_desc">Atur berapa sering flush GPU bekerja</string>
@@ -87,6 +96,10 @@
     <string name="enable_fast_gpu_readback">Aktifkan fast GPU readback</string>
     <string name="enable_fast_gpu_readback_enabled">Fast GPU readback diaktifkan (Dapat meningkatkan performa, tetapi akan menyebabkan bug di beberapa game)</string>
     <string name="enable_fast_gpu_readback_disabled">Fast GPU readback dinonaktifkan (Memastikan akurasi tertinggi)</string>
+    <string name="disable_subgroup_shuffle">Matikan GPU subgroup shuffle</string>
+    <string name="disable_subgroup_shuffle_enabled">Operasi shader subgroup shuffle di matikan, akan menyebabkan bug grafik yang parah</string>
+    <string name="disable_subgroup_shuffle_disabled">Operasi subgroup shuffle di aktifkan, memastikan akurasi yang tinggi</string>
+
     <!-- Settings - Audio -->
     <string name="audio">Suara</string>
     <string name="disable_audio_output">Matikan Output Suara</string>
