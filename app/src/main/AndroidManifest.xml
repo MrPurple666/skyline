@@ -46,6 +46,14 @@
         </activity>
 
         <activity
+            android:name=".GameSettingsActivity"
+            android:exported="true"
+            android:label="@string/game_settings"
+            android:launchMode="singleTop"
+            android:parentActivityName=".MainActivity">
+        </activity>
+
+        <activity
             android:name=".input.ControllerActivity"
             android:exported="true"
             android:parentActivityName=".SettingsActivity">

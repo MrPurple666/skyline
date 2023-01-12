@@ -18,6 +18,12 @@
     <string name="no_rom">Cannot find any ROMs</string>
     <string name="pin">Pin</string>
     <string name="play">Play</string>
+    <string name="game_settings">Game Settings</string>
+    <string name="selected_game">Selected Game</string>
+    <string name="custom_settings">Custom Settings</string>
+    <string name="use_custom_settings">Use Custom Settings</string>
+    <string name="use_custom_settings_enabled">Custom settings will be used to play this game</string>
+    <string name="use_custom_settings_disabled">Default settings will be used to play this game</string>
     <string name="searching_roms">Searching for ROMs</string>
     <string name="invalid_file">Invalid file</string>
     <string name="missing_title_key">Missing title key</string>
