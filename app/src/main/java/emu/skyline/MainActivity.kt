@@ -258,7 +258,7 @@ class MainActivity : AppCompatActivity() {
             SortingOrder.AlphabeticalAsc.ordinal -> sortedApps.sortBy { it.name }
             SortingOrder.AlphabeticalDesc.ordinal -> sortedApps.sortByDescending { it.name }
         }
-        return sortedApps.toList()
+        return sortedApps
     }
 
     private fun handleState(state : MainState) = when (state) {
