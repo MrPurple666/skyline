@@ -65,6 +65,40 @@ class PreferenceSettings @Inject constructor(@ApplicationContext private val con
     var romFormatFilter by sharedPreferences(context, 0)
     var refreshRequired by sharedPreferences(context, false)
 
+
+    // Game Settings
+
+    // Emulator
+    var gamepCustomSettings by sharedPreferences(context, "")
+
+    // System
+    var gamepIsDocked by sharedPreferences(context, true)
+    var gamepSystemLanguage by sharedPreferences(context, 1)
+    var gamepSystemRegion by sharedPreferences(context, -1)
+
+    // Display
+    var gamepForceTripleBuffering by sharedPreferences(context, true)
+    var gamepDisableFrameThrottling by sharedPreferences(context, false)
+    var gamepMaxRefreshRate by sharedPreferences(context, false)
+    var gamepAspectRatio by sharedPreferences(context, 0)
+    var gamepOrientation by sharedPreferences(context, ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
+
+    // GPU
+    var gamepGpuDriver by sharedPreferences(context, PreferenceSettings.SYSTEM_GPU_DRIVER)
+    var gamepExecutorSlotCountScale by sharedPreferences(context, 6)
+    var gamepExecutorFlushThreshold by sharedPreferences(context, 256)
+    var gamepUseDirectMemoryImport by sharedPreferences(context, false)
+    var gamepForceMaxGpuClocks by sharedPreferences(context, false)
+
+    // Hacks
+    var gamepEnableFastGpuReadbackHack by sharedPreferences(context, false)
+
+    // Audio
+    var gamepIsAudioOutputDisabled by sharedPreferences(context, false)
+
+    // Debug
+    var gamepValidationLayer by sharedPreferences(context, false)
+
     companion object {
         const val SYSTEM_GPU_DRIVER = "system"
     }

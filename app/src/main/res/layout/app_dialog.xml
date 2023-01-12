@@ -122,6 +122,18 @@
                     app:iconGravity="textStart"
                     android:padding="0dp"
                     app:iconPadding="0dp" />
+
+                <Button
+                    android:id="@+id/game_settings"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+                    android:layout_width="48dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@string/pin"
+                    android:textColor="?attr/colorAccent"
+                    app:icon="@drawable/ic_settings"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp" />
             </com.google.android.flexbox.FlexboxLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

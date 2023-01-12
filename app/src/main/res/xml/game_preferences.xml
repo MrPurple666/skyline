@@ -1,0 +1,149 @@
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        android:key="gamep_category_game"
+        android:title="@string/selected_game">
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="gamep_category_custom"
+        android:title="@string/custom_settings">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:summaryOff="@string/use_custom_settings_disabled"
+            android:summaryOn="@string/use_custom_settings_enabled"
+            app:key="gamep_custom_settings"
+            app:title="@string/use_custom_settings" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="gamep_category_emulator"
+        android:dependency="gamep_custom_settings"
+        android:title="@string/emulator">
+        <emu.skyline.preference.GpuDriverPreference
+            app:key="gamep_gpu_driver"
+            app:title="@string/gpu_driver_config" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="gamep_category_system"
+        android:dependency="gamep_custom_settings"
+        android:title="@string/system">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:summaryOff="@string/handheld_enabled"
+            android:summaryOn="@string/docked_enabled"
+            app:key="gamep_is_docked"
+            app:title="@string/use_docked" />
+        <emu.skyline.preference.IntegerListPreference
+            android:defaultValue="1"
+            android:entries="@array/system_languages"
+            android:entryValues="@array/system_languages_val"
+            app:key="gamep_system_language"
+            app:refreshRequired="true"
+            app:title="@string/system_language"
+            app:useSimpleSummaryProvider="true" />
+        <emu.skyline.preference.IntegerListPreference
+            android:defaultValue="-1"
+            android:entries="@array/system_region"
+            android:entryValues="@array/system_region_val"
+            app:key="gamep_system_region"
+            app:title="@string/system_region"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="gamep_category_presentation"
+        android:dependency="gamep_custom_settings"
+        android:title="@string/display">
+        <emu.skyline.preference.IntegerListPreference
+            android:defaultValue="6"
+            android:entries="@array/orientation_entries"
+            android:entryValues="@array/orientation_values"
+            app:key="gamep_orientation"
+            app:title="@string/screen_orientation"
+            app:useSimpleSummaryProvider="true" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:summaryOff="@string/triple_buffering_disabled"
+            android:summaryOn="@string/triple_buffering_enabled"
+            app:key="gamep_force_triple_buffering"
+            app:title="@string/force_triple_buffering" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="gamep_force_triple_buffering"
+            android:summaryOff="@string/disable_frame_throttling_disabled"
+            android:summaryOn="@string/disable_frame_throttling_enabled"
+            app:key="gamep_disable_frame_throttling"
+            app:title="@string/disable_frame_throttling" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:summaryOff="@string/max_refresh_rate_disabled"
+            android:summaryOn="@string/max_refresh_rate_enabled"
+            app:key="gamep_max_refresh_rate"
+            app:title="@string/max_refresh_rate" />
+        <emu.skyline.preference.IntegerListPreference
+            android:defaultValue="0"
+            android:entries="@array/aspect_ratios"
+            app:key="gamep_aspect_ratio"
+            app:title="@string/aspect_ratio"
+            app:useSimpleSummaryProvider="true" />
+        <SeekBarPreference
+            android:min="1"
+            android:defaultValue="4"
+            android:max="6"
+            android:summary="@string/executor_slot_count_scale_desc"
+            app:key="gamep_executor_slot_count_scale"
+            app:title="@string/executor_slot_count_scale"
+            app:showSeekBarValue="true" />
+        <SeekBarPreference
+            android:min="0"
+            android:defaultValue="256"
+            android:max="1024"
+            android:summary="@string/executor_flush_threshold_desc"
+            app:key="gamep_executor_flush_threshold"
+            app:title="@string/executor_flush_threshold"
+            app:showSeekBarValue="true" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:summary="@string/use_direct_memory_import_desc"
+            app:key="gamep_use_direct_memory_import"
+            app:title="@string/use_direct_memory_import" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:summary="@string/force_max_gpu_clocks_desc"
+            app:key="gamep_force_max_gpu_clocks"
+            app:title="@string/force_max_gpu_clocks" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="gamep_category_hacks"
+        android:dependency="gamep_custom_settings"
+        android:title="@string/hacks">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:summaryOff="@string/enable_fast_gpu_readback_disabled"
+            android:summaryOn="@string/enable_fast_gpu_readback_enabled"
+            app:key="gamep_enable_fast_gpu_readback_hack"
+            app:title="@string/enable_fast_gpu_readback" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="gamep_category_audio"
+        android:dependency="gamep_custom_settings"
+        android:title="@string/audio"
+        app:isPreferenceVisible="true">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:summaryOff="@string/disable_audio_output_disabled"
+            android:summaryOn="@string/disable_audio_output_enabled"
+            app:key="gamep_is_audio_output_disabled"
+            app:title="@string/disable_audio_output" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="gamep_category_debug"
+        android:dependency="gamep_custom_settings"
+        android:title="@string/debug"
+        app:isPreferenceVisible="false">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:summaryOff="@string/validation_layer_disabled"
+            android:summaryOn="@string/validation_layer_enabled"
+            app:key="gamep_validation_layer"
+            app:title="@string/validation_layer" />
+    </PreferenceCategory>
+</androidx.preference.PreferenceScreen>

@@ -10,11 +10,14 @@ import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -23,6 +26,7 @@ import com.google.android.material.snackbar.Snackbar
 import emu.skyline.data.AppItem
 import emu.skyline.databinding.AppDialogBinding
 import emu.skyline.loader.LoaderResult
+import emu.skyline.utils.PreferenceSettings
 
 /**
  * This dialog is used to show extra game metadata and provide extra options such as pinning the game to the home screen
@@ -46,11 +50,19 @@ class AppDialog : BottomSheetDialogFragment() {
 
     private val item by lazy { requireArguments().getSerializable("item")!! as AppItem }
 
+    lateinit var preferenceSettings : PreferenceSettings
+
+    private val settingsCallback = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        // None
+    }
+
+
     /**
      * This inflates the layout of the dialog after initial view creation
      */
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) = AppDialogBinding.inflate(inflater).also { binding = it }.root
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onViewCreated(view : View, savedInstanceState : Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -73,6 +85,11 @@ class AppDialog : BottomSheetDialogFragment() {
         binding.gamePlay.isEnabled = item.loaderResult == LoaderResult.Success
         binding.gamePlay.setOnClickListener {
             startActivity(Intent(activity, EmulationActivity::class.java).apply { data = item.uri })
+        }
+
+        binding.gameSettings.isEnabled = item.loaderResult == LoaderResult.Success
+        binding.gameSettings.setOnClickListener {
+            settingsCallback.launch(Intent(context, GameSettingsActivity::class.java).apply { data = item.uri; putExtra("item", item) })
         }
 
         val shortcutManager = requireActivity().getSystemService(ShortcutManager::class.java)
