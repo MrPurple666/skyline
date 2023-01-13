@@ -13,21 +13,16 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.*
-import androidx.preference.CheckBoxPreference
-import androidx.preference.Preference
-import androidx.preference.PreferenceCategory
-import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.*
 import emu.skyline.data.AppItem
 import emu.skyline.databinding.GameSettingsActivityBinding
+import emu.skyline.di.getSettings
+import emu.skyline.preference.GpuDriverPreference
 import emu.skyline.preference.IntegerListPreference
 import emu.skyline.utils.GpuDriverHelper
 import emu.skyline.utils.WindowInsetsHelper
-import org.json.JSONException
-import org.json.JSONObject
-import java.io.File
-import java.io.FileWriter
-import java.io.PrintWriter
-import java.nio.charset.Charset
+import emu.skyline.utils.GameDataHandler
+import emu.skyline.utils.PreferenceSettings
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class GameSettingsActivity : AppCompatActivity() {
@@ -95,6 +90,7 @@ class GameSettingsActivity : AppCompatActivity() {
      * This fragment is used to display all of the preferences
      */
     class PreferenceFragment : PreferenceFragmentCompat() {
+        var preferenceSettings : PreferenceSettings? = context?.getSettings()
 
         companion object {
             private const val DIALOG_FRAGMENT_TAG = "androidx.preference.PreferenceFragment.DIALOG"
@@ -112,6 +108,7 @@ class GameSettingsActivity : AppCompatActivity() {
          */
         override fun onCreatePreferences(savedInstanceState : Bundle?, rootKey : String?) {
             appItem = (context as GameSettingsActivity).appItem as AppItem
+
             setPreferencesFromResource(R.xml.game_preferences, rootKey)
 
             // Uncheck `disable_frame_throttling` if `force_triple_buffering` gets disabled
@@ -135,7 +132,65 @@ class GameSettingsActivity : AppCompatActivity() {
                 forceMaxGpuClocksPref.summary = context!!.getString(R.string.force_max_gpu_clocks_desc_unsupported)
             }
 
+            loadGameCustomSettings()
+
             setCategoriesVisibility(areCustomSettingsEnabled.isChecked)
+        }
+
+        private fun loadGameCustomSettings() {
+            var gameDataHandler = GameDataHandler()
+            val gameData = gameDataHandler.getGameData(context, (appItem as AppItem))
+
+            val gamepCustomSettings = findPreference<CheckBoxPreference>("gamep_custom_settings")!!
+            gamepCustomSettings.isChecked = gameData.customSettings
+
+            val gamepGpuDriver = findPreference<GpuDriverPreference>("gamep_gpu_driver")!!
+            //gamepGpuDriver. = gameData.customSettings
+
+            val gamepIsDocked = findPreference<CheckBoxPreference>("gamep_is_docked")!!
+            gamepIsDocked.isChecked = gameData.customSettings
+
+            val gamepSystemLanguage = findPreference<IntegerListPreference>("gamep_system_language")!!
+            gamepSystemLanguage.order = gameData.systemLanguage
+
+            val gamepSystemRegion = findPreference<IntegerListPreference>("gamep_system_region")!!
+            gamepSystemRegion.order = gameData.systemRegion
+
+            val gamepForceTripleBuffering = findPreference<CheckBoxPreference>("gamep_force_triple_buffering")!!
+            gamepForceTripleBuffering.isChecked = gameData.forceTripleBuffering
+
+            val gamepDisableFrameThrottling = findPreference<CheckBoxPreference>("gamep_disable_frame_throttling")!!
+            gamepDisableFrameThrottling.isChecked = gameData.disableFrameThrottling
+
+            val gamepMaxRefreshRate = findPreference<CheckBoxPreference>("gamep_max_refresh_rate")!!
+            gamepMaxRefreshRate.isChecked = gameData.maxRefreshRate
+
+            val gamepAspectRatio = findPreference<IntegerListPreference>("gamep_aspect_ratio")!!
+            gamepAspectRatio.order = gameData.aspectRatio
+
+            val gamepOrientation = findPreference<IntegerListPreference>("gamep_orientation")!!
+            gamepOrientation.order = gameData.orientation
+
+            val gamepExecutorSlotCountScale = findPreference<SeekBarPreference>("gamep_executor_slot_count_scale")!!
+            gamepExecutorSlotCountScale.value = gameData.executorSlotCountScale
+
+            val gamepExecutorFlushThreshold = findPreference<SeekBarPreference>("gamep_executor_flush_threshold")!!
+            gamepExecutorFlushThreshold.value = gameData.executorFlushThreshold
+
+            val gamepUseDirectMemoryImport = findPreference<CheckBoxPreference>("gamep_use_direct_memory_import")!!
+            gamepUseDirectMemoryImport.isChecked = gameData.useDirectMemoryImport
+
+            val gamepForceMaxGpuClocks = findPreference<CheckBoxPreference>("gamep_force_max_gpu_clocks")!!
+            gamepForceMaxGpuClocks.isChecked = gameData.forceMaxGpuClocks
+
+            val gamepEnableFastGpuReadbackHack = findPreference<CheckBoxPreference>("gamep_enable_fast_gpu_readback_hack")!!
+            gamepEnableFastGpuReadbackHack.isChecked = gameData.enableFastGpuReadbackHack
+
+            val gamepIsAudioOutputDisabled = findPreference<CheckBoxPreference>("gamep_is_audio_output_disabled")!!
+            gamepIsAudioOutputDisabled.isChecked = gameData.isAudioOutputDisabled
+
+            val gamepValidationLayer = findPreference<CheckBoxPreference>("gamep_validation_layer")!!
+            gamepValidationLayer.isChecked = gameData.validationLayer
         }
 
         override fun onDisplayPreferenceDialog(preference : Preference) {
@@ -155,47 +210,47 @@ class GameSettingsActivity : AppCompatActivity() {
 
         override fun onStop() {
             Log.i("onStop Event", "Se termina la edicion")
-            val path = "/json/microsoft.json"
+            var gameDataHandler = GameDataHandler()
+            var gameData = gameDataHandler.getGameData(context, appItem)
 
-            val json = JSONObject()
+            gameData.customSettings = context?.let { PreferenceSettings(it).gamepCustomSettings }!!
+            gameData.gpuDriver = context?.let { PreferenceSettings(it).gamepGpuDriver }!!
+            gameData.isDocked = context?.let { PreferenceSettings(it).gamepIsDocked }!!
 
-            try {
-                json.put("name", "Microsoft")
-                json.put("employees", 182268)
-                json.put("offices", listOf("California", "Washington", "Virginia"))
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
+            val gamepSystemLanguage = findPreference<IntegerListPreference>("gamep_system_language")!!
+            gameData.systemLanguage = gamepSystemLanguage.order
 
-            val filename = "customGameSetting"
-            val fileContents = "Hello world!"
-            context?.openFileOutput(filename, 0).use {
-                if (it != null) {
-                    it.write(fileContents.toByteArray())
-                }
-            }
+            val gamepSystemRegion = findPreference<IntegerListPreference>("gamep_system_region")!!
+            gameData.systemRegion = gamepSystemRegion.order
 
-            var files: Array<String>? = context?.fileList() ?: null
+            /* gameData.systemLanguage = (context?.let { PreferenceSettings(it).gamepSystemLanguage }!! as IntegerListPreference).order
+            gameData.systemRegion = (context?.let { PreferenceSettings(it).gamepSystemRegion }!! as IntegerListPreference).order */
+            gameData.forceTripleBuffering = context?.let { PreferenceSettings(it).gamepForceTripleBuffering }!!
+            gameData.disableFrameThrottling = context?.let { PreferenceSettings(it).gamepDisableFrameThrottling }!!
+            gameData.maxRefreshRate = context?.let { PreferenceSettings(it).gamepMaxRefreshRate }!!
 
+            val gamepAspectRatio = findPreference<IntegerListPreference>("gamep_aspect_ratio")!!
+            gameData.aspectRatio = gamepAspectRatio.order
 
-            try {
-                PrintWriter(FileWriter(context?.filesDir, Charset.defaultCharset()))
-                    .use { it.write(json.toString()) }
-            } catch (e: Exception) {
-                Log.i("Error al escribir archivo ", e.toString())
-                e.printStackTrace()
-            }
-            /*findPreference<Preference>("gamep_category_emulator")?.isVisible = visible
-            findPreference<Preference>("gamep_category_system")?.isVisible = visible
-            findPreference<Preference>("gamep_category_presentation")?.isVisible = visible
-            findPreference<Preference>("gamep_category_hacks")?.isVisible = visible
-            findPreference<Preference>("gamep_category_audio")?.isVisible = visible
-            findPreference<Preference>("gamep_category_debug")?.isVisible = visible*/
+            val gamepOrientation = findPreference<IntegerListPreference>("gamep_orientation")!!
+            gameData.systemRegion = gamepOrientation.order
+
+            /*gameData.aspectRatio = (context?.let { PreferenceSettings(it).gamepAspectRatio }!! as IntegerListPreference).order
+            gameData.orientation = (context?.let { PreferenceSettings(it).gamepOrientation }!! as IntegerListPreference).order*/
+            gameData.executorSlotCountScale = context?.let { PreferenceSettings(it).gamepExecutorSlotCountScale }!!
+            gameData.executorFlushThreshold = context?.let { PreferenceSettings(it).gamepExecutorFlushThreshold }!!
+            gameData.useDirectMemoryImport = context?.let { PreferenceSettings(it).gamepUseDirectMemoryImport }!!
+            gameData.forceMaxGpuClocks = context?.let { PreferenceSettings(it).gamepForceMaxGpuClocks }!!
+            gameData.enableFastGpuReadbackHack = context?.let { PreferenceSettings(it).gamepEnableFastGpuReadbackHack }!!
+            gameData.isAudioOutputDisabled = context?.let { PreferenceSettings(it).gamepIsAudioOutputDisabled }!!
+            gameData.validationLayer = context?.let { PreferenceSettings(it).gamepValidationLayer }!!
+
+            gameDataHandler.saveGameData(context, gameData)
+
             super.onStop()
         }
 
         override fun onPreferenceTreeClick(preference : Preference) : Boolean {
-            //Log.i("onPreferenceTreeClick Event", "Se cambio la configuración")
             return super.onPreferenceTreeClick(preference)
         }
 
