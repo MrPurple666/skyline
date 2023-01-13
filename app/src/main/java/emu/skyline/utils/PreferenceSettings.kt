@@ -69,7 +69,7 @@ class PreferenceSettings @Inject constructor(@ApplicationContext private val con
     // Game Settings
 
     // Emulator
-    var gamepCustomSettings by sharedPreferences(context, "")
+    var gamepCustomSettings by sharedPreferences(context, false)
 
     // System
     var gamepIsDocked by sharedPreferences(context, true)
