@@ -67,10 +67,22 @@ class GameDataHandler() {
     fun getGameData(context: Context?, item : AppItem?) : CustomGameData  {
         var gameDataList : List<CustomGameData> = getGamesData(context)
 
-        var gameDataElement : CustomGameData = CustomGameData(item?.titleId, item?.version, item?.title )
+        var gameDataElement = CustomGameData(item?.titleId, item?.version, item?.title )
         for (game in gameDataList) {
-            if( (game as CustomGameData).titleId == item?.titleId && (game as CustomGameData).version == item?.version ) {
-                gameDataElement = (game as CustomGameData)
+            if( game.titleId == item?.titleId && game.version == item?.version ) {
+                gameDataElement = game
+            }
+        }
+        return gameDataElement
+    }
+
+    fun getDefaultSettings(context: Context?) : CustomGameData  {
+        var gameDataList : List<CustomGameData> = getGamesData(context)
+
+        var gameDataElement = CustomGameData("default", "default", "default" )
+        for (game in gameDataList) {
+            if( game.titleId == "default" && game.version == "default" ) {
+                gameDataElement = game
             }
         }
         return gameDataElement

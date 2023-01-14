@@ -5,6 +5,7 @@
 
 package emu.skyline
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -37,6 +38,7 @@ import emu.skyline.loader.AppEntry
 import emu.skyline.loader.LoaderResult
 import emu.skyline.loader.RomFormat
 import emu.skyline.provider.DocumentsProvider
+import emu.skyline.utils.GameDataHandler
 import emu.skyline.utils.GpuDriverHelper
 import emu.skyline.utils.PreferenceSettings
 import emu.skyline.utils.WindowInsetsHelper
@@ -86,7 +88,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val settingsCallback = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        saveDefaulSettings(applicationContext)
         if (preferenceSettings.refreshRequired) loadRoms(false)
+    }
+    private fun saveDefaulSettings(context : Context) {
+        var gameDataHandler = GameDataHandler()
+        var gameData = gameDataHandler.getDefaultSettings(context)
+
+        gameData.customSettings = false
+        gameData.gpuDriver = preferenceSettings.gpuDriver
+        gameData.isDocked = preferenceSettings.isDocked
+        gameData.systemLanguage = preferenceSettings.systemLanguage
+        gameData.systemRegion = preferenceSettings.systemRegion
+        gameData.forceTripleBuffering = preferenceSettings.forceTripleBuffering
+        gameData.disableFrameThrottling = preferenceSettings.disableFrameThrottling
+        gameData.maxRefreshRate = preferenceSettings.maxRefreshRate
+        gameData.aspectRatio = preferenceSettings.aspectRatio
+        gameData.orientation = preferenceSettings.orientation
+        gameData.executorSlotCountScale = preferenceSettings.executorSlotCountScale
+        gameData.executorFlushThreshold = preferenceSettings.executorFlushThreshold
+        gameData.useDirectMemoryImport = preferenceSettings.useDirectMemoryImport
+        gameData.forceMaxGpuClocks = preferenceSettings.forceMaxGpuClocks
+        gameData.enableFastGpuReadbackHack = preferenceSettings.enableFastGpuReadbackHack
+        gameData.isAudioOutputDisabled = preferenceSettings.isAudioOutputDisabled
+        gameData.validationLayer = preferenceSettings.validationLayer
+
+        gameDataHandler.saveGameData(context, gameData)
     }
 
     private fun AppItem.toViewItem() = AppViewItem(layoutType, this, missingIcon, ::selectStartGame, ::selectShowGameDialog)

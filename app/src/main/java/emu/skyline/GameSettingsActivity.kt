@@ -142,56 +142,23 @@ class GameSettingsActivity : AppCompatActivity() {
             var gameDataHandler = GameDataHandler()
             val gameData = gameDataHandler.getGameData(context, (appItem as AppItem))
 
-            val gamepCustomSettings = findPreference<CheckBoxPreference>("gamep_custom_settings")!!
-            gamepCustomSettings.isChecked = gameData.customSettings
-
-            val gamepGpuDriver = findPreference<GamepGpuDriverPreference>("gamep_gpu_driver")!!
-            gamepGpuDriver.setValue(gameData.gpuDriver)
-
-            val gamepIsDocked = findPreference<CheckBoxPreference>("gamep_is_docked")!!
-            gamepIsDocked.isChecked = gameData.isDocked
-
-            val gamepSystemLanguage = findPreference<IntegerListPreference>("gamep_system_language")!!
-            gamepSystemLanguage.value = gameData.systemLanguage
-
-            val gamepSystemRegion = findPreference<IntegerListPreference>("gamep_system_region")!!
-            gamepSystemRegion.value = gameData.systemRegion
-
-            val gamepForceTripleBuffering = findPreference<CheckBoxPreference>("gamep_force_triple_buffering")!!
-            gamepForceTripleBuffering.isChecked = gameData.forceTripleBuffering
-
-            val gamepDisableFrameThrottling = findPreference<CheckBoxPreference>("gamep_disable_frame_throttling")!!
-            gamepDisableFrameThrottling.isChecked = gameData.disableFrameThrottling
-
-            val gamepMaxRefreshRate = findPreference<CheckBoxPreference>("gamep_max_refresh_rate")!!
-            gamepMaxRefreshRate.isChecked = gameData.maxRefreshRate
-
-            val gamepAspectRatio = findPreference<IntegerListPreference>("gamep_aspect_ratio")!!
-            gamepAspectRatio.value = gameData.aspectRatio
-
-            val gamepOrientation = findPreference<IntegerListPreference>("gamep_orientation")!!
-            gamepOrientation.value = gameData.orientation
-
-            val gamepExecutorSlotCountScale = findPreference<SeekBarPreference>("gamep_executor_slot_count_scale")!!
-            gamepExecutorSlotCountScale.value = gameData.executorSlotCountScale
-
-            val gamepExecutorFlushThreshold = findPreference<SeekBarPreference>("gamep_executor_flush_threshold")!!
-            gamepExecutorFlushThreshold.value = gameData.executorFlushThreshold
-
-            val gamepUseDirectMemoryImport = findPreference<CheckBoxPreference>("gamep_use_direct_memory_import")!!
-            gamepUseDirectMemoryImport.isChecked = gameData.useDirectMemoryImport
-
-            val gamepForceMaxGpuClocks = findPreference<CheckBoxPreference>("gamep_force_max_gpu_clocks")!!
-            gamepForceMaxGpuClocks.isChecked = gameData.forceMaxGpuClocks
-
-            val gamepEnableFastGpuReadbackHack = findPreference<CheckBoxPreference>("gamep_enable_fast_gpu_readback_hack")!!
-            gamepEnableFastGpuReadbackHack.isChecked = gameData.enableFastGpuReadbackHack
-
-            val gamepIsAudioOutputDisabled = findPreference<CheckBoxPreference>("gamep_is_audio_output_disabled")!!
-            gamepIsAudioOutputDisabled.isChecked = gameData.isAudioOutputDisabled
-
-            val gamepValidationLayer = findPreference<CheckBoxPreference>("gamep_validation_layer")!!
-            gamepValidationLayer.isChecked = gameData.validationLayer
+            findPreference<CheckBoxPreference>("gamep_custom_settings")!!.isChecked = gameData.customSettings
+            findPreference<GamepGpuDriverPreference>("gamep_gpu_driver")!!.setValue(gameData.gpuDriver)
+            findPreference<CheckBoxPreference>("gamep_is_docked")!!.isChecked = gameData.isDocked
+            findPreference<IntegerListPreference>("gamep_system_language")!!.value = gameData.systemLanguage
+            findPreference<IntegerListPreference>("gamep_system_region")!!.value = gameData.systemRegion
+            findPreference<CheckBoxPreference>("gamep_force_triple_buffering")!!.isChecked = gameData.forceTripleBuffering
+            findPreference<CheckBoxPreference>("gamep_disable_frame_throttling")!!.isChecked = gameData.disableFrameThrottling
+            findPreference<CheckBoxPreference>("gamep_max_refresh_rate")!!.isChecked = gameData.maxRefreshRate
+            findPreference<IntegerListPreference>("gamep_aspect_ratio")!!.value = gameData.aspectRatio
+            findPreference<IntegerListPreference>("gamep_orientation")!!.value = gameData.orientation
+            findPreference<SeekBarPreference>("gamep_executor_slot_count_scale")!!.value = gameData.executorSlotCountScale
+            findPreference<SeekBarPreference>("gamep_executor_flush_threshold")!!.value = gameData.executorFlushThreshold
+            findPreference<CheckBoxPreference>("gamep_use_direct_memory_import")!!.isChecked = gameData.useDirectMemoryImport
+            findPreference<CheckBoxPreference>("gamep_force_max_gpu_clocks")!!.isChecked = gameData.forceMaxGpuClocks
+            findPreference<CheckBoxPreference>("gamep_enable_fast_gpu_readback_hack")!!.isChecked = gameData.enableFastGpuReadbackHack
+            findPreference<CheckBoxPreference>("gamep_is_audio_output_disabled")!!.isChecked = gameData.isAudioOutputDisabled
+            findPreference<CheckBoxPreference>("gamep_validation_layer")!!.isChecked = gameData.validationLayer
         }
 
         override fun onDisplayPreferenceDialog(preference : Preference) {
