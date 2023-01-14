@@ -8,13 +8,11 @@ package emu.skyline.utils
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.util.Log
-import androidx.preference.PreferenceManager
 import emu.skyline.data.AppItem
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.io.*
 
 /**
  * The settings that will be passed to libskyline when running and executable
@@ -49,7 +47,7 @@ class GameDataHandler() {
     }
 
 
-    fun getGamesData(context : Context?) : List<CustomGameData>  {
+    private fun getGamesData(context : Context?) : List<CustomGameData>  {
         var gameDataList : List<CustomGameData>
 
         try{

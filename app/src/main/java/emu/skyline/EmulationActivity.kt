@@ -42,6 +42,8 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     companion object {
         private val Tag = EmulationActivity::class.java.simpleName
         const val ReturnToMainTag = "returnToMain"
+        const val ItemTitleId = "titleId"
+        const val ItemVersion = "version"
 
         /**
          * The Kotlin thread on which emulation code executes
@@ -66,6 +68,10 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
      * If the activity should return to [MainActivity] or just call [finishAffinity]
      */
     var returnToMain : Boolean = false
+
+    var itemTitleId : String = ""
+
+    var itemVersion : String = ""
 
     /**
      * The desired refresh rate to present at in Hz
@@ -185,6 +191,8 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
         shouldFinish = true
         returnToMain = intent.getBooleanExtra(ReturnToMainTag, false)
+        itemTitleId = intent.getStringExtra(ItemTitleId).toString()
+        itemVersion = intent.getStringExtra(ItemVersion).toString()
 
         val rom = intent.data!!
         val romType = getRomFormat(rom, contentResolver).ordinal
