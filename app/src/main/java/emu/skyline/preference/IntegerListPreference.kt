@@ -49,13 +49,13 @@ open class IntegerListPreference @JvmOverloads constructor(
      */
     var entryValues : IntArray?
 
-    private var value : Int? = null
+    var value : Int? = null
         set(value) {
             // Always persist/notify the first time
             val changed = field != value
             if (changed || !isValueSet) {
                 field = value
-                isValueSet = true
+                //isValueSet = true
                 value?.let { persistInt(it) }
                 if (changed)
                     notifyChanged()

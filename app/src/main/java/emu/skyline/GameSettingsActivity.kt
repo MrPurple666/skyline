@@ -5,6 +5,7 @@
 
 package emu.skyline
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -17,7 +18,7 @@ import androidx.preference.*
 import emu.skyline.data.AppItem
 import emu.skyline.databinding.GameSettingsActivityBinding
 import emu.skyline.di.getSettings
-import emu.skyline.preference.GpuDriverPreference
+import emu.skyline.preference.GamepGpuDriverPreference
 import emu.skyline.preference.IntegerListPreference
 import emu.skyline.utils.GpuDriverHelper
 import emu.skyline.utils.WindowInsetsHelper
@@ -144,17 +145,17 @@ class GameSettingsActivity : AppCompatActivity() {
             val gamepCustomSettings = findPreference<CheckBoxPreference>("gamep_custom_settings")!!
             gamepCustomSettings.isChecked = gameData.customSettings
 
-            val gamepGpuDriver = findPreference<GpuDriverPreference>("gamep_gpu_driver")!!
-            //gamepGpuDriver. = gameData.customSettings
+            val gamepGpuDriver = findPreference<GamepGpuDriverPreference>("gamep_gpu_driver")!!
+            gamepGpuDriver.setValue(gameData.gpuDriver)
 
             val gamepIsDocked = findPreference<CheckBoxPreference>("gamep_is_docked")!!
-            gamepIsDocked.isChecked = gameData.customSettings
+            gamepIsDocked.isChecked = gameData.isDocked
 
             val gamepSystemLanguage = findPreference<IntegerListPreference>("gamep_system_language")!!
-            gamepSystemLanguage.order = gameData.systemLanguage
+            gamepSystemLanguage.value = gameData.systemLanguage
 
             val gamepSystemRegion = findPreference<IntegerListPreference>("gamep_system_region")!!
-            gamepSystemRegion.order = gameData.systemRegion
+            gamepSystemRegion.value = gameData.systemRegion
 
             val gamepForceTripleBuffering = findPreference<CheckBoxPreference>("gamep_force_triple_buffering")!!
             gamepForceTripleBuffering.isChecked = gameData.forceTripleBuffering
@@ -166,10 +167,10 @@ class GameSettingsActivity : AppCompatActivity() {
             gamepMaxRefreshRate.isChecked = gameData.maxRefreshRate
 
             val gamepAspectRatio = findPreference<IntegerListPreference>("gamep_aspect_ratio")!!
-            gamepAspectRatio.order = gameData.aspectRatio
+            gamepAspectRatio.value = gameData.aspectRatio
 
             val gamepOrientation = findPreference<IntegerListPreference>("gamep_orientation")!!
-            gamepOrientation.order = gameData.orientation
+            gamepOrientation.value = gameData.orientation
 
             val gamepExecutorSlotCountScale = findPreference<SeekBarPreference>("gamep_executor_slot_count_scale")!!
             gamepExecutorSlotCountScale.value = gameData.executorSlotCountScale
@@ -216,27 +217,13 @@ class GameSettingsActivity : AppCompatActivity() {
             gameData.customSettings = context?.let { PreferenceSettings(it).gamepCustomSettings }!!
             gameData.gpuDriver = context?.let { PreferenceSettings(it).gamepGpuDriver }!!
             gameData.isDocked = context?.let { PreferenceSettings(it).gamepIsDocked }!!
-
-            val gamepSystemLanguage = findPreference<IntegerListPreference>("gamep_system_language")!!
-            gameData.systemLanguage = gamepSystemLanguage.order
-
-            val gamepSystemRegion = findPreference<IntegerListPreference>("gamep_system_region")!!
-            gameData.systemRegion = gamepSystemRegion.order
-
-            /* gameData.systemLanguage = (context?.let { PreferenceSettings(it).gamepSystemLanguage }!! as IntegerListPreference).order
-            gameData.systemRegion = (context?.let { PreferenceSettings(it).gamepSystemRegion }!! as IntegerListPreference).order */
+            gameData.systemLanguage = context?.let { PreferenceSettings(it).gamepSystemLanguage }!!
+            gameData.systemRegion = context?.let { PreferenceSettings(it).gamepSystemRegion }!!
             gameData.forceTripleBuffering = context?.let { PreferenceSettings(it).gamepForceTripleBuffering }!!
             gameData.disableFrameThrottling = context?.let { PreferenceSettings(it).gamepDisableFrameThrottling }!!
             gameData.maxRefreshRate = context?.let { PreferenceSettings(it).gamepMaxRefreshRate }!!
-
-            val gamepAspectRatio = findPreference<IntegerListPreference>("gamep_aspect_ratio")!!
-            gameData.aspectRatio = gamepAspectRatio.order
-
-            val gamepOrientation = findPreference<IntegerListPreference>("gamep_orientation")!!
-            gameData.systemRegion = gamepOrientation.order
-
-            /*gameData.aspectRatio = (context?.let { PreferenceSettings(it).gamepAspectRatio }!! as IntegerListPreference).order
-            gameData.orientation = (context?.let { PreferenceSettings(it).gamepOrientation }!! as IntegerListPreference).order*/
+            gameData.aspectRatio = context?.let { PreferenceSettings(it).gamepAspectRatio }!!
+            gameData.orientation = context?.let { PreferenceSettings(it).gamepOrientation }!!
             gameData.executorSlotCountScale = context?.let { PreferenceSettings(it).gamepExecutorSlotCountScale }!!
             gameData.executorFlushThreshold = context?.let { PreferenceSettings(it).gamepExecutorFlushThreshold }!!
             gameData.useDirectMemoryImport = context?.let { PreferenceSettings(it).gamepUseDirectMemoryImport }!!

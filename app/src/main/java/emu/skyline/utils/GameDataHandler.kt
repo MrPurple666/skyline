@@ -108,8 +108,8 @@ class GameDataHandler() {
         var customSettings : Boolean = false
         // System
         var isDocked : Boolean = true
-        var systemLanguage : Int = 0
-        var systemRegion : Int = 0
+        var systemLanguage : Int = 1
+        var systemRegion : Int = -1
         // Display
         var forceTripleBuffering : Boolean = true
         var disableFrameThrottling : Boolean = false

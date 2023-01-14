@@ -66,6 +66,12 @@
         </activity>
 
         <activity
+            android:name=".preference.GamepGpuDriverActivity"
+            android:exported="true"
+            android:parentActivityName=".GameSettingsActivity">
+        </activity>
+
+        <activity
             android:name=".input.onscreen.OnScreenEditActivity"
             android:exported="true"
             android:screenOrientation="sensorLandscape"
