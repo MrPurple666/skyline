@@ -38,6 +38,12 @@ namespace skyline::service::nifm {
         Result GetSystemEventReadableHandles(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
 
         /**
+         * @brief Returns two KEvent handles that signal request on request updates
+         * @url https://switchbrew.org/wiki/Network_Interface_services#Cancel
+         */
+        Result Cancel(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
+
+        /**
          * @brief Submits a request to bring up a network
          * @url https://switchbrew.org/wiki/Network_Interface_services#Submit
          */
@@ -57,6 +63,7 @@ namespace skyline::service::nifm {
             SFUNC(0x0, IRequest, GetRequestState),
             SFUNC(0x1, IRequest, GetResult),
             SFUNC(0x2, IRequest, GetSystemEventReadableHandles),
+            SFUNC(0x3, IRequest, Cancel),
             SFUNC(0x4, IRequest, Submit),
             SFUNC(0xB, IRequest, SetConnectionConfirmationOption),
             SFUNC(0x15, IRequest, GetAppletInfo)
