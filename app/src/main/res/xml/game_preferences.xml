@@ -18,7 +18,7 @@
         android:key="gamep_category_emulator"
         android:dependency="gamep_custom_settings"
         android:title="@string/emulator">
-        <emu.skyline.preference.GpuDriverPreference
+        <emu.skyline.preference.GamepGpuDriverPreference
             app:key="gamep_gpu_driver"
             app:title="@string/gpu_driver_config" />
     </PreferenceCategory>
