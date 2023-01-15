@@ -42,8 +42,6 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     companion object {
         private val Tag = EmulationActivity::class.java.simpleName
         const val ReturnToMainTag = "returnToMain"
-        const val ItemTitleId = "titleId"
-        const val ItemVersion = "version"
 
         /**
          * The Kotlin thread on which emulation code executes
@@ -68,10 +66,6 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
      * If the activity should return to [MainActivity] or just call [finishAffinity]
      */
     var returnToMain : Boolean = false
-
-    var itemTitleId : String = ""
-
-    var itemVersion : String = ""
 
     /**
      * The desired refresh rate to present at in Hz
@@ -191,8 +185,6 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
         shouldFinish = true
         returnToMain = intent.getBooleanExtra(ReturnToMainTag, false)
-        itemTitleId = intent.getStringExtra(ItemTitleId).toString()
-        itemVersion = intent.getStringExtra(ItemVersion).toString()
 
         val rom = intent.data!!
         val romType = getRomFormat(rom, contentResolver).ordinal
@@ -212,7 +204,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     @SuppressLint("SetTextI18n", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
-        requestedOrientation = preferenceSettings.orientation
+        requestedOrientation = if (preferenceSettings.gamepCustomSettings) preferenceSettings.gamepOrientation else preferenceSettings.orientation
         window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         inputHandler = InputHandler(inputManager, preferenceSettings)
         setContentView(binding.root)
@@ -225,7 +217,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         binding.gameView.holder.addCallback(this)
 
         binding.gameView.setAspectRatio(
-            when (preferenceSettings.aspectRatio) {
+            when (if (preferenceSettings.gamepCustomSettings) preferenceSettings.gamepAspectRatio else preferenceSettings.aspectRatio) {
                 0 -> Rational(16, 9)
                 1 -> Rational(21, 9)
                 else -> null
@@ -233,7 +225,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         )
 
         if (preferenceSettings.perfStats) {
-            if (preferenceSettings.disableFrameThrottling)
+            if (if (preferenceSettings.gamepCustomSettings) preferenceSettings.gamepDisableFrameThrottling else preferenceSettings.disableFrameThrottling)
                 binding.perfStats.setTextColor(getColor(R.color.colorPerfStatsSecondary))
 
             binding.perfStats.apply {
@@ -252,7 +244,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
             }
         }
 
-        force60HzRefreshRate(!preferenceSettings.maxRefreshRate)
+        force60HzRefreshRate(if (preferenceSettings.gamepCustomSettings) !preferenceSettings.gamepMaxRefreshRate else !preferenceSettings.maxRefreshRate)
         getSystemService<DisplayManager>()?.registerDisplayListener(this, null)
 
         binding.gameView.setOnTouchListener(this)
@@ -278,7 +270,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     override fun onPause() {
         super.onPause()
 
-        if (preferenceSettings.forceMaxGpuClocks)
+        if (if (preferenceSettings.gamepCustomSettings) preferenceSettings.gamepForceMaxGpuClocks else preferenceSettings.forceMaxGpuClocks)
             GpuDriverHelper.forceMaxGpuClocks(false)
 
         changeAudioStatus(false)
@@ -330,7 +322,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         // Stop forcing 60Hz on exit to allow the skyline UI to run at high refresh rates
         getSystemService<DisplayManager>()?.unregisterDisplayListener(this)
         force60HzRefreshRate(false)
-        if (preferenceSettings.forceMaxGpuClocks)
+        if (if (preferenceSettings.gamepCustomSettings) preferenceSettings.gamepForceMaxGpuClocks else preferenceSettings.forceMaxGpuClocks)
             GpuDriverHelper.forceMaxGpuClocks(false)
 
         stopEmulation(false)
@@ -357,7 +349,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         Log.d(Tag, "surfaceChanged Holder: $holder, Format: $format, Width: $width, Height: $height")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            holder.surface.setFrameRate(desiredRefreshRate, if (preferenceSettings.maxRefreshRate) Surface.FRAME_RATE_COMPATIBILITY_DEFAULT else Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE)
+            holder.surface.setFrameRate(desiredRefreshRate, if (if (preferenceSettings.gamepCustomSettings) preferenceSettings.gamepMaxRefreshRate else preferenceSettings.maxRefreshRate) Surface.FRAME_RATE_COMPATIBILITY_DEFAULT else Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE)
     }
 
     override fun surfaceDestroyed(holder : SurfaceHolder) {
@@ -505,7 +497,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         @Suppress("DEPRECATION")
         val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display!! else windowManager.defaultDisplay
         if (display.displayId == displayId)
-            force60HzRefreshRate(!preferenceSettings.maxRefreshRate)
+            force60HzRefreshRate(if (preferenceSettings.gamepCustomSettings) !preferenceSettings.gamepMaxRefreshRate else !preferenceSettings.maxRefreshRate)
     }
 
     override fun onDisplayAdded(displayId : Int) {}
