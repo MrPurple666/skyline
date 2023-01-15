@@ -13,7 +13,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
+import androidx.preference.Preference
+import android.preference.PreferenceManager
 /**
  * The settings that will be passed to libskyline when running and executable
  */
@@ -106,11 +107,37 @@ class GameDataHandler() {
         writeGamesDataString(context, json.encodeToString(gameDataList.toList()))
     }
 
+    fun loadGameSettings(context: Context?, item : AppItem?)  {
+        var gameData = getGameData(context, item)
+
+        var sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        var settings = sharedPreferences?.edit()
+
+        settings?.putBoolean("gamep_custom_settings", gameData.customSettings)
+        if(gameData.customSettings) {
+            settings?.putBoolean("gamep_is_docked", gameData.isDocked)
+            settings?.putInt("gamep_system_language", gameData.systemLanguage)
+            settings?.putInt("gamep_system_region", gameData.systemRegion)
+            settings?.putBoolean("fgamep_force_triple_buffering", gameData.forceTripleBuffering)
+            settings?.putBoolean("gamep_disable_frame_throttling", gameData.disableFrameThrottling)
+            settings?.putBoolean("gamep_max_refresh_rate", gameData.maxRefreshRate)
+            settings?.putInt("gamep_aspect_ratio", gameData.aspectRatio)
+            settings?.putInt("gamep_orientation", gameData.orientation)
+            settings?.putString("gamep_gpu_driver", gameData.gpuDriver)
+            settings?.putInt("gamep_executor_slot_count_scale", gameData.executorSlotCountScale)
+            settings?.putInt("gamep_is_docked", gameData.executorFlushThreshold)
+            settings?.putBoolean("gamep_executor_flush_threshold", gameData.useDirectMemoryImport)
+            settings?.putBoolean("gamep_force_max_gpu_clocks", gameData.forceMaxGpuClocks)
+            settings?.putBoolean("gamep_enable_fast_gpu_readback_hack", gameData.enableFastGpuReadbackHack)
+            settings?.putBoolean("gamep_is_audio_output_disabled", gameData.isAudioOutputDisabled)
+            settings?.putBoolean("gamep_validation_layer", gameData.validationLayer)
+        }
+
+        settings?.commit()
+    }
+
     @Serializable
     class CustomGameData ( var titleId: String?, var version: String?, var title: String?) {
-        // Identification
-        //var titleId : String = ""
-        //var version: String = ""
         // General Values
         var playCount : Int = 0
         var isFavorite : Boolean = false

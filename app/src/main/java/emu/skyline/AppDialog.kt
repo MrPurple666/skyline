@@ -27,6 +27,7 @@ import emu.skyline.data.AppItem
 import emu.skyline.databinding.AppDialogBinding
 import emu.skyline.loader.LoaderResult
 import emu.skyline.utils.PreferenceSettings
+import emu.skyline.utils.GameDataHandler
 
 /**
  * This dialog is used to show extra game metadata and provide extra options such as pinning the game to the home screen
@@ -84,10 +85,10 @@ class AppDialog : BottomSheetDialogFragment() {
 
         binding.gamePlay.isEnabled = item.loaderResult == LoaderResult.Success
         binding.gamePlay.setOnClickListener {
+            var gameDataHandler = GameDataHandler()
+            gameDataHandler.loadGameSettings(context, item)
             startActivity(Intent(activity, EmulationActivity::class.java).apply {
                 data = item.uri;
-                putExtra(EmulationActivity.ItemTitleId, item.titleId);
-                putExtra(EmulationActivity.ItemVersion, item.version);
             })
         }
 

@@ -13,33 +13,34 @@ import emu.skyline.BuildConfig
  */
 class NativeSettings(context : Context, pref : PreferenceSettings) {
     // System
-    var isDocked : Boolean = pref.isDocked
+    var isDocked : Boolean = if (pref.gamepCustomSettings) pref.gamepIsDocked else pref.isDocked
     var usernameValue : String = pref.usernameValue
     var profilePictureValue : String = pref.profilePictureValue
-    var systemLanguage : Int = pref.systemLanguage
-    var systemRegion : Int = pref.systemRegion
+    var systemLanguage : Int = if (pref.gamepCustomSettings) pref.gamepSystemLanguage else pref.systemLanguage
+    var systemRegion : Int = if (pref.gamepCustomSettings) pref.gamepSystemRegion else pref.systemRegion
 
     // Display
-    var forceTripleBuffering : Boolean = pref.forceTripleBuffering
-    var disableFrameThrottling : Boolean = pref.disableFrameThrottling
+    var forceTripleBuffering : Boolean = if (pref.gamepCustomSettings) pref.gamepForceTripleBuffering else pref.forceTripleBuffering
+    var disableFrameThrottling : Boolean = if (pref.gamepCustomSettings) pref.gamepDisableFrameThrottling else pref.disableFrameThrottling
     var disableShaderCache : Boolean = pref.disableShaderCache
 
     // GPU
-    var gpuDriver : String = if (pref.gpuDriver == PreferenceSettings.SYSTEM_GPU_DRIVER) "" else pref.gpuDriver
-    var gpuDriverLibraryName : String = if (pref.gpuDriver == PreferenceSettings.SYSTEM_GPU_DRIVER) "" else GpuDriverHelper.getLibraryName(context, pref.gpuDriver)
-    var executorSlotCountScale : Int = pref.executorSlotCountScale
-    var executorFlushThreshold : Int = pref.executorFlushThreshold
-    var useDirectMemoryImport : Boolean = pref.useDirectMemoryImport
-    var forceMaxGpuClocks : Boolean = pref.forceMaxGpuClocks
+    var selectedGpuDriver : String = if (pref.gamepCustomSettings) pref.gamepGpuDriver else pref.gpuDriver
+    var gpuDriver : String = if (selectedGpuDriver == PreferenceSettings.SYSTEM_GPU_DRIVER) "" else selectedGpuDriver
+    var gpuDriverLibraryName : String = if (selectedGpuDriver == PreferenceSettings.SYSTEM_GPU_DRIVER) "" else GpuDriverHelper.getLibraryName(context, selectedGpuDriver)
+    var executorSlotCountScale : Int = if (pref.gamepCustomSettings) pref.gamepExecutorSlotCountScale else pref.executorSlotCountScale
+    var executorFlushThreshold : Int = if (pref.gamepCustomSettings) pref.gamepExecutorFlushThreshold else pref.executorFlushThreshold
+    var useDirectMemoryImport : Boolean = if (pref.gamepCustomSettings) pref.gamepUseDirectMemoryImport else pref.useDirectMemoryImport
+    var forceMaxGpuClocks : Boolean = if (pref.gamepCustomSettings) pref.gamepForceMaxGpuClocks else pref.forceMaxGpuClocks
 
     // Hacks
-    var enableFastGpuReadbackHack : Boolean = pref.enableFastGpuReadbackHack
+    var enableFastGpuReadbackHack : Boolean = if (pref.gamepCustomSettings) pref.gamepEnableFastGpuReadbackHack else pref.enableFastGpuReadbackHack
 
     // Audio
-    var isAudioOutputDisabled : Boolean = pref.isAudioOutputDisabled
+    var isAudioOutputDisabled : Boolean = if (pref.gamepCustomSettings) pref.gamepIsAudioOutputDisabled else pref.isAudioOutputDisabled
 
     // Debug
-    var validationLayer : Boolean = BuildConfig.BUILD_TYPE != "release" && pref.validationLayer
+    var validationLayer : Boolean = BuildConfig.BUILD_TYPE != "release" && if (pref.gamepCustomSettings) pref.gamepValidationLayer else pref.validationLayer
 
     /**
      * Updates settings in libskyline during emulation
