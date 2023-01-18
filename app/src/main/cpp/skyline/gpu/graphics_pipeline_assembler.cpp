@@ -246,7 +246,7 @@ namespace skyline::gpu {
     }
 
     void GraphicsPipelineAssembler::SavePipelineCache() {
-        std::ignore = pool.submit([this] () {
+        pool.submit([this] () {
             std::vector<u8> rawData{vkPipelineCache.getData()};
             SerialisePipelineCache(gpu, pipelineCacheDir, rawData);
         });
