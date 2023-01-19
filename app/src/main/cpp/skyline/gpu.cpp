@@ -406,12 +406,8 @@ namespace skyline::gpu {
           framebufferCache(*this) {}
 
     void GPU::Initialise() {
-        std::string titleId{state.loader->nacp->GetSaveDataOwnerId()};
-        shader.emplace(state, *this,
-                       state.os->publicAppFilesPath + "shader_replacements/" + titleId,
-                       state.os->publicAppFilesPath + "shader_dumps/" + titleId);
-        graphicsPipelineCacheManager.emplace(state,
-                                             state.os->publicAppFilesPath + "graphics_pipeline_cache/" + titleId);
+        if (!*state.settings->disableShaderCache)
+            graphicsPipelineCacheManager.emplace(state, state.os->publicAppFilesPath + "graphics_pipeline_cache/" + state.loader->nacp->GetSaveDataOwnerId());
         graphicsPipelineManager.emplace(*this);
     }
 }
