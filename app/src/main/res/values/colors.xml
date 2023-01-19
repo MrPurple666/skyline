@@ -7,6 +7,6 @@
     <color name="dividerColor">@android:color/black</color>
     <color name="onBackgroundLight">#1E000000</color>
 
-    <color name="colorPerfStatsPrimary">#9FFFFF00</color>
-    <color name="colorPerfStatsSecondary">#9F00FFFF</color>
+    <color name="colorPerfStatsPrimary">#9FB800FF</color>
+    <color name="colorPerfStatsSecondary">#9FFF9A00</color>
 </resources>
