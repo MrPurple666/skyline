@@ -63,7 +63,7 @@ class InputHandler(private val inputManager : InputManager, private val preferen
         external fun setAxisValue(index : Int, axis : Int, value : Int)
 
         /**
-         * This sets the values of the points on the guest touch-screen
+         * This sets the values of the motion sensor on a specific controller
          *
          * @param index The index of the controller this is directed to
          * @param motionId The ID of the motion sensor that is being modified
@@ -84,14 +84,19 @@ class InputHandler(private val inputManager : InputManager, private val preferen
         var deltaTimestamp : u64 = 0uL,
         @param:ByteBufferSerializable.ByteBufferSerializableArray(3) var gyroscope : FloatArray = FloatArray(3),
         @param:ByteBufferSerializable.ByteBufferSerializableArray(3) var accelerometer : FloatArray = FloatArray(3),
-        @param:ByteBufferSerializable.ByteBufferSerializableArray(4) var quaternion : FloatArray = FloatArray(4),
-        @param:ByteBufferSerializable.ByteBufferSerializableArray(9) var orientationMatrix : FloatArray = FloatArray(9),
     ) : ByteBufferSerializable
 
     /**
      * The latest state of the motion sensor
      */
     private val motionSensor = MotionSensorInput()
+
+    /**
+     * Buffer for passing motion data to c++
+     */
+    private val motionDataBufferLeft = ByteBuffer.allocateDirect(0x28).order(ByteOrder.LITTLE_ENDIAN)
+    private val motionDataBufferRight = ByteBuffer.allocateDirect(0x28).order(ByteOrder.LITTLE_ENDIAN)
+    private val motionDataBufferHandheld = ByteBuffer.allocateDirect(0x28).order(ByteOrder.LITTLE_ENDIAN)
 
     /**
      * Initializes all of the controllers from [InputManager] on the guest
@@ -120,23 +125,12 @@ class InputHandler(private val inputManager : InputManager, private val preferen
 
     fun initialiseMotionSensors(context : Context) {
         val sensorManager = context.getSystemService<SensorManager>() ?: return
-        val sensorList = sensorManager.getSensorList(Sensor.TYPE_ALL)
-        val hasRotationVector = sensorList.any { sensor -> sensor.type == Sensor.TYPE_ROTATION_VECTOR }
 
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
         }
         sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)?.also { gyroscope ->
             sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_GAME)
-        }
-        sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)?.also { rotationVector ->
-            sensorManager.registerListener(this, rotationVector, SensorManager.SENSOR_DELAY_GAME)
-        }
-        // Avoid listening to two rotation vectors at once
-        if (!hasRotationVector) {
-            sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR)?.also { rotationVector ->
-                sensorManager.registerListener(this, rotationVector, SensorManager.SENSOR_DELAY_GAME)
-            }
         }
     }
 
@@ -238,32 +232,16 @@ class InputHandler(private val inputManager : InputManager, private val preferen
     override fun onSensorChanged(event : SensorEvent) {
         when (event.sensor.type) {
             Sensor.TYPE_ACCELEROMETER -> {
-                motionSensor.accelerometer[0] = event.values[0] / SensorManager.GRAVITY_EARTH
-                motionSensor.accelerometer[1] = event.values[1] / SensorManager.GRAVITY_EARTH
-                motionSensor.accelerometer[2] = event.values[2] / SensorManager.GRAVITY_EARTH
+                motionSensor.accelerometer[0] = -event.values[1] / SensorManager.GRAVITY_EARTH
+                motionSensor.accelerometer[1] = event.values[0] / SensorManager.GRAVITY_EARTH
+                motionSensor.accelerometer[2] = -event.values[2] / SensorManager.GRAVITY_EARTH
             }
 
             Sensor.TYPE_GYROSCOPE -> {
                 // Investigate why sensor value is off by 12x
-                motionSensor.gyroscope[0] = event.values[0] / 12.0f
-                motionSensor.gyroscope[1] = event.values[1] / 12.0f
+                motionSensor.gyroscope[0] = event.values[1] / 12.0f
+                motionSensor.gyroscope[1] = -event.values[0] / 12.0f
                 motionSensor.gyroscope[2] = event.values[2] / 12.0f
-            }
-
-            Sensor.TYPE_ROTATION_VECTOR -> {
-                motionSensor.quaternion[0] = event.values[0]
-                motionSensor.quaternion[1] = event.values[1]
-                motionSensor.quaternion[2] = event.values[2]
-                motionSensor.quaternion[3] = event.values[3]
-                SensorManager.getRotationMatrixFromVector(motionSensor.orientationMatrix, event.values)
-            }
-
-            Sensor.TYPE_GAME_ROTATION_VECTOR -> {
-                motionSensor.quaternion[0] = event.values[0]
-                motionSensor.quaternion[1] = event.values[1]
-                motionSensor.quaternion[2] = event.values[2]
-                motionSensor.quaternion[3] = event.values[3]
-                SensorManager.getRotationMatrixFromVector(motionSensor.orientationMatrix, event.values)
             }
 
             else -> {}
@@ -275,9 +253,13 @@ class InputHandler(private val inputManager : InputManager, private val preferen
 
         motionSensor.deltaTimestamp = event.timestamp.toULong() - motionSensor.timestamp
         motionSensor.timestamp = event.timestamp.toULong()
-        setMotionState(0, 0, motionSensor.writeToByteBuffer(ByteBuffer.allocateDirect(0x5C).order(ByteOrder.LITTLE_ENDIAN)))
-        setMotionState(0, 1, motionSensor.writeToByteBuffer(ByteBuffer.allocateDirect(0x5C).order(ByteOrder.LITTLE_ENDIAN)))
-        setMotionState(0, 2, motionSensor.writeToByteBuffer(ByteBuffer.allocateDirect(0x5C).order(ByteOrder.LITTLE_ENDIAN)))
+
+        motionDataBufferLeft.clear()
+        motionDataBufferRight.clear()
+        motionDataBufferHandheld.clear()
+        setMotionState(0, 0, motionSensor.writeToByteBuffer(motionDataBufferLeft))
+        setMotionState(0, 1, motionSensor.writeToByteBuffer(motionDataBufferRight))
+        setMotionState(0, 2, motionSensor.writeToByteBuffer(motionDataBufferHandheld))
     }
 
     fun handleTouchEvent(view : View, event : MotionEvent) : Boolean {

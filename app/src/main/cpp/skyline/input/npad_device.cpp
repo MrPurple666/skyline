@@ -444,29 +444,47 @@ namespace skyline::input {
             return;
 
         NpadSixAxisState *sixAxisState{sensor == MotionId::Right? &sixAxisStateRight : &sixAxisStateLeft};
+        MotionInput* motionSensor{sensor == MotionId::Right ? &motionRight : &motionLeft};
 
-        sixAxisState->accelerometer.x = value->accelerometer[0];
-        sixAxisState->accelerometer.y = value->accelerometer[1];
-        sixAxisState->accelerometer.z = value->accelerometer[2];
+        motionSensor->SetAcceleration(Common::Vec3f{
+            value->accelerometer[0],
+            value->accelerometer[1],
+            value->accelerometer[2],
+        });
+        motionSensor->SetGyroscope(Common::Vec3f{
+            value->gyroscope[0],
+            value->gyroscope[1],
+            value->gyroscope[2],
+        });
+        motionSensor->UpdateRotation(value->deltaTimestamp / 1000);
+        motionSensor->UpdateOrientation(value->deltaTimestamp / 1000);
 
-        sixAxisState->gyroscope.x = value->gyroscope[0];
-        sixAxisState->gyroscope.y = value->gyroscope[1];
-        sixAxisState->gyroscope.z = value->gyroscope[2];
+        const auto gyroscope = motionSensor->GetGyroscope();
+        const auto accelerometer = motionSensor->GetAcceleration();
+        const auto rotation = motionSensor->GetRotations();
+        const auto orientation = motionSensor->GetOrientation();
 
-        float deltaTime{static_cast<float>(value->deltaTimestamp) / 1000000000.0f};
-        sixAxisState->rotation.x += value->gyroscope[0] * deltaTime;
-        sixAxisState->rotation.y += value->gyroscope[1] * deltaTime;
-        sixAxisState->rotation.z += value->gyroscope[2] * deltaTime;
+        sixAxisState->accelerometer.x = accelerometer.x;
+        sixAxisState->accelerometer.y = accelerometer.y;
+        sixAxisState->accelerometer.z = accelerometer.z;
 
-        sixAxisState->orientation[0].x = value->orientationMatrix[0];
-        sixAxisState->orientation[0].y = value->orientationMatrix[1];
-        sixAxisState->orientation[0].z = value->orientationMatrix[2];
-        sixAxisState->orientation[1].x = value->orientationMatrix[3];
-        sixAxisState->orientation[1].y = value->orientationMatrix[4];
-        sixAxisState->orientation[1].z = value->orientationMatrix[5];
-        sixAxisState->orientation[2].x = value->orientationMatrix[6];
-        sixAxisState->orientation[2].y = value->orientationMatrix[7];
-        sixAxisState->orientation[2].z = value->orientationMatrix[8];
+        sixAxisState->gyroscope.x = gyroscope.x;
+        sixAxisState->gyroscope.y = gyroscope.y;
+        sixAxisState->gyroscope.z = gyroscope.z;
+
+        sixAxisState->rotation.x = rotation.x;
+        sixAxisState->rotation.y = rotation.y;
+        sixAxisState->rotation.z = rotation.z;
+
+        sixAxisState->orientation[0].x = orientation[0].x;
+        sixAxisState->orientation[0].y = orientation[0].y;
+        sixAxisState->orientation[0].z = orientation[0].z;
+        sixAxisState->orientation[1].x = orientation[1].x;
+        sixAxisState->orientation[1].y = orientation[1].y;
+        sixAxisState->orientation[1].z = orientation[1].z;
+        sixAxisState->orientation[2].x = orientation[2].x;
+        sixAxisState->orientation[2].y = orientation[2].y;
+        sixAxisState->orientation[2].z = orientation[2].z;
 
         sixAxisState->deltaTimestamp = value->deltaTimestamp;
         sixAxisState->attribute.isConnected = true;

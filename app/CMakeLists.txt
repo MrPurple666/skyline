@@ -233,6 +233,7 @@ add_library(skyline SHARED
         ${source_DIR}/skyline/soc/gm20b/engines/maxwell/initialization.cpp
         ${source_DIR}/skyline/soc/gm20b/engines/fermi_2d.cpp
         ${source_DIR}/skyline/input.cpp
+        ${source_DIR}/skyline/input/motion_input.cpp
         ${source_DIR}/skyline/input/npad.cpp
         ${source_DIR}/skyline/input/npad_device.cpp
         ${source_DIR}/skyline/input/touch.cpp
