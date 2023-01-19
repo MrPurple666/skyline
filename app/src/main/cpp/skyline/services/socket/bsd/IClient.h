@@ -4,6 +4,8 @@
 #pragma once
 
 #include <services/serviceman.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 namespace skyline::service::socket {
     /**
@@ -11,6 +13,9 @@ namespace skyline::service::socket {
      * @url https://switchbrew.org/wiki/Sockets_services#bsd:u.2C_bsd:s
      */
     class IClient : public BaseService {
+      private:
+        struct sockaddr_in sockaddr;
+
       public:
         IClient(const DeviceState &state, ServiceManager &manager);
 
@@ -24,6 +29,11 @@ namespace skyline::service::socket {
          * @brief Starts the monitoring of the socket
          */
         Result StartMonitoring(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
+
+        /**
+         * @brief
+         */
+        Result Socket(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
 
         /**
          * @brief Selects the socket
@@ -108,6 +118,7 @@ namespace skyline::service::socket {
         SERVICE_DECL(
             SFUNC(0x0, IClient, RegisterClient),
             SFUNC(0x1, IClient, StartMonitoring),
+            SFUNC(0x2, IClient, Socket),
             SFUNC(0x5, IClient, Select),
             SFUNC(0x6, IClient, Poll),
             SFUNC(0x8, IClient, Recv),
