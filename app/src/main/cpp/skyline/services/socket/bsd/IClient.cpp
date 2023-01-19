@@ -2,6 +2,7 @@
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
 #include "IClient.h"
+#include <arpa/inet.h>
 
 namespace skyline::service::socket {
     IClient::IClient(const DeviceState &state, ServiceManager &manager) : BaseService(state, manager) {}
@@ -96,10 +97,12 @@ namespace skyline::service::socket {
         Logger::Warn("sin_family {} sin_port {}  sin_addr {}", sockaddr.sin_family, sockaddr.sin_port, sockaddr.sin_addr.s_addr);
 
         sockaddr.sin_family >>= 8;
-        sockaddr.sin_port = (sockaddr.sin_port>>8) | (sockaddr.sin_port<<8);
-        sockaddr.sin_addr.s_addr = htonl(sockaddr.sin_addr.s_addr);
+        u16 sin_port = (sockaddr.sin_port>>8) | (sockaddr.sin_port<<8);
+        char ip[16];
+        ::inet_ntop(AF_INET,&sockaddr.sin_addr.s_addr,ip,sizeof(ip));
+        //sockaddr.sin_addr.s_addr = htonl(sockaddr.sin_addr.s_addr); Not necessary
 
-        Logger::Warn("sin_family {} sin_port {}  sin_addr {}", sockaddr.sin_family, sockaddr.sin_port, sockaddr.sin_addr.s_addr);
+        Logger::Warn("sin_family {} sin_port {}  sin_addr {}", sockaddr.sin_family, sin_port, ip);
 
         int result = ::connect(socketFd, (struct sockaddr*)&sockaddr, sizeof(sockaddr));
 
