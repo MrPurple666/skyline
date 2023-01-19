@@ -5,6 +5,7 @@
 
 #include <kernel/types/KEvent.h>
 #include "shared_mem.h"
+#include "motion_input.h"
 
 namespace skyline::input {
 
@@ -24,12 +25,10 @@ namespace skyline::input {
     struct MotionSensorState {
         u64 timestamp;
         u64 deltaTimestamp;
-        std::array<float,3> gyroscope;
-        std::array<float,3> accelerometer;
-        std::array<float,4> quaternion;
-        std::array<float,9> orientationMatrix;
+        std::array<float, 3> gyroscope;
+        std::array<float, 3> accelerometer;
     };
-    static_assert(sizeof(MotionSensorState) == 0x60);
+    static_assert(sizeof(MotionSensorState) == 0x28);
 
     /**
      * @brief How many joycons must be attached for handheld mode to be triggered
@@ -175,6 +174,7 @@ namespace skyline::input {
         u64 globalTimestamp{}; //!< An incrementing timestamp that's common across all sections
         NpadControllerState controllerState{}, defaultState{}; //!< The current state of the controller (normal and default)
         NpadSixAxisState sixAxisStateLeft{}, sixAxisStateRight{}; //!< The current state of the sixaxis (left and right)
+        MotionInput motionLeft{},motionRight{};
 
         /**
          * @brief Updates the headers and writes a new entry in HID Shared Memory
