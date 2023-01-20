@@ -160,6 +160,7 @@ class GameSettingsActivity : AppCompatActivity() {
             findPreference<CheckBoxPreference>("gamep_is_audio_output_disabled")!!.isChecked = gameData.isAudioOutputDisabled
             findPreference<CheckBoxPreference>("gamep_validation_layer")!!.isChecked = gameData.validationLayer
             findPreference<CheckBoxPreference>("gamep_shader_cache")!!.isChecked = gameData.disableShaderCache
+	    findPreference<CheckBoxPreference>("gamep_internet_enabled")!!.isChecked = gameData.internetEnabled
         }
 
         override fun onDisplayPreferenceDialog(preference : Preference) {
@@ -200,6 +201,7 @@ class GameSettingsActivity : AppCompatActivity() {
             gameData.isAudioOutputDisabled = context?.let { PreferenceSettings(it).gamepIsAudioOutputDisabled }!!
             gameData.validationLayer = context?.let { PreferenceSettings(it).gamepValidationLayer }!!
             gameData.disableShaderCache = context?.let { PreferenceSettings(it).gamepDisableShaderCache }!!
+	    gameData.internetEnabled = context?.let { PreferenceSettings(it).gamepInternetEnabled }!!
 
             gameDataHandler.saveGameData(context, gameData)
 

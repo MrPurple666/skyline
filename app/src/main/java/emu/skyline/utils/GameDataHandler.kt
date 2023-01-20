@@ -132,6 +132,7 @@ class GameDataHandler() {
             settings?.putBoolean("gamep_is_audio_output_disabled", gameData.isAudioOutputDisabled)
             settings?.putBoolean("gamep_validation_layer", gameData.validationLayer)
             settings?.putBoolean("gamep_disable_cache", gameData.disableShaderCache)
+	    settings?.putBoolean("gamep_internet_enabled", gameData.internetEnabled)
         }
 
         settings?.commit()
@@ -148,6 +149,7 @@ class GameDataHandler() {
         var isDocked : Boolean = true
         var systemLanguage : Int = 1
         var systemRegion : Int = -1
+	var internetEnabled : Boolean = true
         // Display
         var forceTripleBuffering : Boolean = true
         var disableFrameThrottling : Boolean = false
