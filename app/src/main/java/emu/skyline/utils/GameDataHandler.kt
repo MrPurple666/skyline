@@ -131,6 +131,7 @@ class GameDataHandler() {
             settings?.putBoolean("gamep_enable_fast_gpu_readback_hack", gameData.enableFastGpuReadbackHack)
             settings?.putBoolean("gamep_is_audio_output_disabled", gameData.isAudioOutputDisabled)
             settings?.putBoolean("gamep_validation_layer", gameData.validationLayer)
+            settings?.putBoolean("gamep_disable_cache", gameData.disableShaderCache)
         }
 
         settings?.commit()
@@ -153,6 +154,7 @@ class GameDataHandler() {
         var maxRefreshRate : Boolean = false
         var aspectRatio : Int = 0
         var orientation : Int = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+	var disableShaderCache : Boolean = false
         // GPU
         var gpuDriver : String = PreferenceSettings.SYSTEM_GPU_DRIVER
         var executorSlotCountScale : Int = 4

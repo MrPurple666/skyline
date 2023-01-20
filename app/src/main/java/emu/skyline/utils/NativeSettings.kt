@@ -23,7 +23,7 @@ class NativeSettings(context : Context, pref : PreferenceSettings) {
     // Display
     var forceTripleBuffering : Boolean = if (pref.gamepCustomSettings) pref.gamepForceTripleBuffering else pref.forceTripleBuffering
     var disableFrameThrottling : Boolean = if (pref.gamepCustomSettings) pref.gamepDisableFrameThrottling else pref.disableFrameThrottling
-    var disableShaderCache : Boolean = pref.disableShaderCache
+    var disableShaderCache : Boolean = if (pref.gamepCustomSettings) pref.gamepDisableShaderCache else pref.disableShaderCache
 
     // GPU
     var selectedGpuDriver : String = if (pref.gamepCustomSettings) pref.gamepGpuDriver else pref.gpuDriver
