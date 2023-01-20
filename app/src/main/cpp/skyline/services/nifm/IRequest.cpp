@@ -2,6 +2,7 @@
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
 #include <kernel/types/KProcess.h>
+#include <common/settings.h>
 #include "IRequest.h"
 
 namespace skyline::service::nifm {
@@ -15,7 +16,7 @@ namespace skyline::service::nifm {
           BaseService(state, manager) {}
 
     Result IRequest::GetRequestState(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        constexpr u32 Unsubmitted{1}; //!< The request has not been submitted
+        u32 Unsubmitted{static_cast<u32>(*state.settings->internetEnabled? 3 : 1)}; //!< The request has not been submitted (1)
         response.Push<u32>(Unsubmitted);
         return {};
     }
