@@ -36,6 +36,7 @@ namespace skyline {
             profilePictureValue = ktSettings.GetString("profilePictureValue");
             systemLanguage = ktSettings.GetInt<skyline::language::SystemLanguage>("systemLanguage");
             systemRegion = ktSettings.GetInt<skyline::region::RegionCode>("systemRegion");
+            internetEnabled = ktSettings.GetBool("internetEnabled");
             forceTripleBuffering = ktSettings.GetBool("forceTripleBuffering");
             disableFrameThrottling = ktSettings.GetBool("disableFrameThrottling");
             gpuDriver = ktSettings.GetString("gpuDriver");
