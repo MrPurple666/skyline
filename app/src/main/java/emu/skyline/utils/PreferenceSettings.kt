@@ -76,7 +76,7 @@ class PreferenceSettings @Inject constructor(@ApplicationContext private val con
     var gamepIsDocked by sharedPreferences(context, true)
     var gamepSystemLanguage by sharedPreferences(context, 1)
     var gamepSystemRegion by sharedPreferences(context, -1)
-    var internetEnabled by sharedPreferences(context, true)
+    var gamepInternetEnabled by sharedPreferences(context, true)
 
     // Display
     var gamepForceTripleBuffering by sharedPreferences(context, true)
