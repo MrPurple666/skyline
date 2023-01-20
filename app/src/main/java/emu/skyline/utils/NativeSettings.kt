@@ -18,6 +18,7 @@ class NativeSettings(context : Context, pref : PreferenceSettings) {
     var profilePictureValue : String = pref.profilePictureValue
     var systemLanguage : Int = pref.systemLanguage
     var systemRegion : Int = pref.systemRegion
+    var internetEnabled : Boolean = pref.internetEnabled
 
     // Display
     var forceTripleBuffering : Boolean = pref.forceTripleBuffering

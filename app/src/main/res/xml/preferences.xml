@@ -102,6 +102,10 @@
             app:key="system_region"
             app:title="@string/system_region"
             app:useSimpleSummaryProvider="true" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            app:key="internet_enabled"
+            app:title="Enable Internet" />
     </PreferenceCategory>
     <PreferenceCategory
         android:key="category_presentation"

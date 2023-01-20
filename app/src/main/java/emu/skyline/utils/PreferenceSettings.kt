@@ -30,6 +30,7 @@ class PreferenceSettings @Inject constructor(@ApplicationContext private val con
     var profilePictureValue by sharedPreferences(context, "")
     var systemLanguage by sharedPreferences(context, 1)
     var systemRegion by sharedPreferences(context, -1)
+    var internetEnabled by sharedPreferences(context, true)
 
     // Display
     var forceTripleBuffering by sharedPreferences(context, true)
