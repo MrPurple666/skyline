@@ -110,6 +110,12 @@
             android:summary="@string/force_max_gpu_clocks_desc"
             app:key="gamep_force_max_gpu_clocks"
             app:title="@string/force_max_gpu_clocks" />
+	<CheckBoxPreference
+	    android:defaultValue="false"
+            android:summaryOff="@string/shader_cache_disabled"
+            android:summaryOn="@string/shader_cache_enabled"
+            app:key="gamep_shader_cache"
+	    app:title="@string/shader_cache" />
     </PreferenceCategory>
     <PreferenceCategory
         android:key="gamep_category_hacks"

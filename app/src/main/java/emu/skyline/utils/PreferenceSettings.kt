@@ -82,6 +82,7 @@ class PreferenceSettings @Inject constructor(@ApplicationContext private val con
     var gamepMaxRefreshRate by sharedPreferences(context, false)
     var gamepAspectRatio by sharedPreferences(context, 0)
     var gamepOrientation by sharedPreferences(context, ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
+    var gamepDisableShaderCache by sharedPreferences(context, false)
 
     // GPU
     var gamepGpuDriver by sharedPreferences(context, PreferenceSettings.SYSTEM_GPU_DRIVER)

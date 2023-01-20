@@ -159,6 +159,7 @@ class GameSettingsActivity : AppCompatActivity() {
             findPreference<CheckBoxPreference>("gamep_enable_fast_gpu_readback_hack")!!.isChecked = gameData.enableFastGpuReadbackHack
             findPreference<CheckBoxPreference>("gamep_is_audio_output_disabled")!!.isChecked = gameData.isAudioOutputDisabled
             findPreference<CheckBoxPreference>("gamep_validation_layer")!!.isChecked = gameData.validationLayer
+            findPreference<CheckBoxPreference>("gamep_shader_cache")!!.isChecked = gameData.disableShaderCache
         }
 
         override fun onDisplayPreferenceDialog(preference : Preference) {
@@ -198,6 +199,7 @@ class GameSettingsActivity : AppCompatActivity() {
             gameData.enableFastGpuReadbackHack = context?.let { PreferenceSettings(it).gamepEnableFastGpuReadbackHack }!!
             gameData.isAudioOutputDisabled = context?.let { PreferenceSettings(it).gamepIsAudioOutputDisabled }!!
             gameData.validationLayer = context?.let { PreferenceSettings(it).gamepValidationLayer }!!
+            gameData.disableShaderCache = context?.let { PreferenceSettings(it).gamepDisableShaderCache }!!
 
             gameDataHandler.saveGameData(context, gameData)
 
