@@ -29,8 +29,11 @@
 <string name="select_action_desc_on">"As informações do jogo serão mostradas ao clicar no  jogo"</string>
 <string name="select_action_desc_off">"As informações do jogo só serão mostradas ao clicar longamente em um jogo"</string>
 <string name="perf_stats">"Mostrar estatísticas de desempenho"</string>
+<string name="shader_cache">"Desativar o shader cache"</string>
 <string name="perf_stats_desc_off">"As estatísticas de desempenho não serão exibidas"</string>
 <string name="perf_stats_desc_on">"As estatísticas de desempenho serão mostradas no canto superior esquerdo"</string>
+<string name="shader_cache_disabled">"Shaders em cache não serão carregados, causarão interrupções"</string>
+<string name="shader_cache_enabled">"Shaders em cache serão carregados, podem reduzir fortemente os engasgos"</string>
 <string name="log_level">"Nível do log"</string>
 <string name="gpu_driver_config">"Configuração do driver da GPU"</string>
 <string name="gpu_driver_config_desc">"Driver ativo: %1$s"</string>
