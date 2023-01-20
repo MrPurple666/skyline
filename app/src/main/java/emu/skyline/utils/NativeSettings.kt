@@ -18,6 +18,7 @@ class NativeSettings(context : Context, pref : PreferenceSettings) {
     var profilePictureValue : String = pref.profilePictureValue
     var systemLanguage : Int = if (pref.gamepCustomSettings) pref.gamepSystemLanguage else pref.systemLanguage
     var systemRegion : Int = if (pref.gamepCustomSettings) pref.gamepSystemRegion else pref.systemRegion
+    var internetEnabled : Boolean = pref.internetEnabled
 
     // Display
     var forceTripleBuffering : Boolean = if (pref.gamepCustomSettings) pref.gamepForceTripleBuffering else pref.forceTripleBuffering
