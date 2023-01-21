@@ -149,7 +149,7 @@ class GameDataHandler() {
         var isDocked : Boolean = true
         var systemLanguage : Int = 1
         var systemRegion : Int = -1
-	var internetEnabled : Boolean = true
+	var internetEnabled : Boolean = false
         // Display
         var forceTripleBuffering : Boolean = true
         var disableFrameThrottling : Boolean = false

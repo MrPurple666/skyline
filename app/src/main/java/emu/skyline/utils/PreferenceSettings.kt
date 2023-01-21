@@ -30,7 +30,7 @@ class PreferenceSettings @Inject constructor(@ApplicationContext private val con
     var profilePictureValue by sharedPreferences(context, "")
     var systemLanguage by sharedPreferences(context, 1)
     var systemRegion by sharedPreferences(context, -1)
-    var internetEnabled by sharedPreferences(context, true)
+    var internetEnabled by sharedPreferences(context, false)
 
     // Display
     var forceTripleBuffering by sharedPreferences(context, true)
@@ -76,7 +76,7 @@ class PreferenceSettings @Inject constructor(@ApplicationContext private val con
     var gamepIsDocked by sharedPreferences(context, true)
     var gamepSystemLanguage by sharedPreferences(context, 1)
     var gamepSystemRegion by sharedPreferences(context, -1)
-    var gamepInternetEnabled by sharedPreferences(context, true)
+    var gamepInternetEnabled by sharedPreferences(context, false)
 
     // Display
     var gamepForceTripleBuffering by sharedPreferences(context, true)
