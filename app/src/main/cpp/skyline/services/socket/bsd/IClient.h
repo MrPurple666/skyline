@@ -14,7 +14,7 @@ namespace skyline::service::socket {
      */
     class IClient : public BaseService {
       private:
-        struct sockaddr_in sockaddr;
+        std::map<int, sockaddr_in> sockaddrs;
 
       public:
         IClient(const DeviceState &state, ServiceManager &manager);
@@ -80,6 +80,8 @@ namespace skyline::service::socket {
          */
         Result Connect(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
 
+        Result GetSockName(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
+
         /**
          * @brief Places a socket in a state in which it is listening for an incoming connection
          */
@@ -128,6 +130,7 @@ namespace skyline::service::socket {
             SFUNC(0xC, IClient, Accept),
             SFUNC(0xD, IClient, Bind),
             SFUNC(0xE, IClient, Connect),
+            SFUNC(0x10, IClient, GetSockName),
             SFUNC(0x12, IClient, Listen),
             SFUNC(0x15, IClient, SetSockOpt),
             SFUNC(0x16, IClient, Shutdown),

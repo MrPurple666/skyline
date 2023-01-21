@@ -5,4 +5,9 @@
 
 namespace skyline::service::socket {
     IManager::IManager(const DeviceState &state, ServiceManager &manager) : BaseService(state, manager) {}
+
+    Result IManager::ResolveEx(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        request.outputBuf.at(0).copy_from(request.inputBuf.at(0));
+        return {};
+    }
 }
