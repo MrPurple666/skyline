@@ -13,6 +13,7 @@ import android.hardware.SensorManager
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.OrientationEventListener
 import android.view.View
 import androidx.core.content.getSystemService
 import emu.skyline.utils.ByteBufferSerializable
@@ -98,6 +99,9 @@ class InputHandler(private val inputManager : InputManager, private val preferen
     private val motionDataBufferRight = ByteBuffer.allocateDirect(0x28).order(ByteOrder.LITTLE_ENDIAN)
     private val motionDataBufferHandheld = ByteBuffer.allocateDirect(0x28).order(ByteOrder.LITTLE_ENDIAN)
 
+    private val motionGyroOrientation : FloatArray = FloatArray(3);
+    private val motionAcelOrientation : FloatArray = FloatArray(3);
+
     /**
      * Initializes all of the controllers from [InputManager] on the guest
      */
@@ -132,6 +136,43 @@ class InputHandler(private val inputManager : InputManager, private val preferen
         sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)?.also { gyroscope ->
             sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_GAME)
         }
+
+        motionGyroOrientation[0] = 1.0f
+        motionGyroOrientation[1] = -1.0f
+        motionGyroOrientation[2] = 1.0f
+        motionAcelOrientation[0] = -1.0f
+        motionAcelOrientation[1] = 1.0f
+        motionAcelOrientation[2] = -1.0f
+        val orientationEventListener = object : OrientationEventListener(context) {
+            override fun onOrientationChanged(orientation : Int) {
+                when {
+                    isWithinOrientationRange(orientation, 270) -> {
+                        motionGyroOrientation[0] = -1.0f
+                        motionGyroOrientation[1] = 1.0f
+                        motionGyroOrientation[2] = 1.0f
+                        motionAcelOrientation[0] = 1.0f
+                        motionAcelOrientation[1] = -1.0f
+                        motionAcelOrientation[2] = -1.0f
+                    }
+                    isWithinOrientationRange(orientation, 90) -> {
+                        motionGyroOrientation[0] = 1.0f
+                        motionGyroOrientation[1] = -1.0f
+                        motionGyroOrientation[2] = 1.0f
+                        motionAcelOrientation[0] = -1.0f
+                        motionAcelOrientation[1] = 1.0f
+                        motionAcelOrientation[2] = -1.0f
+                    }
+                }
+            }
+
+            private fun isWithinOrientationRange(
+                currentOrientation : Int, targetOrientation : Int, epsilon : Int = 90
+            ) : Boolean {
+                return currentOrientation > targetOrientation - epsilon
+                        && currentOrientation < targetOrientation + epsilon
+            }
+        }
+        orientationEventListener.enable()
     }
 
     /**
@@ -232,16 +273,16 @@ class InputHandler(private val inputManager : InputManager, private val preferen
     override fun onSensorChanged(event : SensorEvent) {
         when (event.sensor.type) {
             Sensor.TYPE_ACCELEROMETER -> {
-                motionSensor.accelerometer[0] = -event.values[1] / SensorManager.GRAVITY_EARTH
-                motionSensor.accelerometer[1] = event.values[0] / SensorManager.GRAVITY_EARTH
-                motionSensor.accelerometer[2] = -event.values[2] / SensorManager.GRAVITY_EARTH
+                motionSensor.accelerometer[0] = motionAcelOrientation[0] * event.values[1] / SensorManager.GRAVITY_EARTH
+                motionSensor.accelerometer[1] = motionAcelOrientation[1] * event.values[0] / SensorManager.GRAVITY_EARTH
+                motionSensor.accelerometer[2] = motionAcelOrientation[2] * event.values[2] / SensorManager.GRAVITY_EARTH
             }
 
             Sensor.TYPE_GYROSCOPE -> {
                 // Investigate why sensor value is off by 12x
-                motionSensor.gyroscope[0] = event.values[1] / 12.0f
-                motionSensor.gyroscope[1] = -event.values[0] / 12.0f
-                motionSensor.gyroscope[2] = event.values[2] / 12.0f
+                motionSensor.gyroscope[0] = motionGyroOrientation[0] * event.values[1] / 12.0f
+                motionSensor.gyroscope[1] = motionGyroOrientation[1] * event.values[0] / 12.0f
+                motionSensor.gyroscope[2] = motionGyroOrientation[2] * event.values[2] / 12.0f
             }
 
             else -> {}
