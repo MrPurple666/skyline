@@ -21,7 +21,7 @@ namespace skyline::service::nifm {
 
     Result IGeneralService::GetCurrentIpAddress(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         if(*state.settings->internetEnabled){
-            std::array<char, 16> ip_addr = {131, 1, 168, 192};
+            std::array<char, 4> ip_addr = {131, 1, 168, 192};
             response.Push(ip_addr);
             return {};
         } else {
