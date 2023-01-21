@@ -82,6 +82,21 @@ namespace skyline::service::socket {
     }
 
     Result IClient::Accept(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        // TODO : Check if it is correct by debugging
+        int socketFd{request.Pop<int>()};
+
+        struct sockaddr_in copy;
+        bzero(&copy, sizeof(copy));
+        socklen_t len = sizeof(copy);
+        int newSocketFd = ::accept(socketFd, (struct sockaddr*)&copy, &len);
+
+        sockaddrs[newSocketFd] = copy;
+
+        Logger::Warn("Copy sin_family {} sin_port {}  sin_addr {}", copy.sin_family, copy.sin_port, copy.sin_addr.s_addr);
+        response.Push<u32>(0); //result
+        Logger::Warn("SocketFd {} NewSocketFd {} errno {}", socketFd, newSocketFd, errno); // If result is 0, do not care about errno
+        response.Push<u32>(errno);  // Error code
+        response.Push<sockaddr_in>(copy);
         return {};
     }
 
@@ -132,7 +147,7 @@ namespace skyline::service::socket {
     }
 
     Result IClient::GetSockName(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        // TODO : FIX
+        // TODO : FIX //Fixed I thing
         int socketFd{request.Pop<int>()};
 
         struct sockaddr_in copy;
@@ -140,7 +155,7 @@ namespace skyline::service::socket {
         socklen_t len = sizeof(copy);
         int result = ::getsockname(socketFd, (struct sockaddr*)&copy, &len);
 
-        //request.outputBuf.at(0).copy_from(span<sockaddr_in>(&copy, 1));
+        request.outputBuf.at(0).copy_from(span<sockaddr_in>(&copy, 1));
 
         sockaddrs[socketFd] = copy;
 
@@ -160,6 +175,20 @@ namespace skyline::service::socket {
 
         response.Push<u32>(0); //result
         Logger::Warn("SocketFd {} Backlog {} Result {} errno {}", socketFd, backlog, result, errno); // If result is 0, do not care about errno
+        response.Push<u32>(errno);
+        return {};
+    }
+
+    Result IClient::Fcntl(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        // https://www.ibm.com/docs/en/zvse/6.2?topic=SSB27H_6.2.0/fa2ti_call_fcntl.htm
+        int socketFd{request.Pop<int>()};
+        int cmd{request.Pop<int>()};
+        int arg{request.Pop<int>()};
+
+        int result = ::fcntl(socketFd, cmd, arg);
+
+        response.Push<u32>(0); //result
+        Logger::Warn("SocketFd {} Cmd {} Arg {}", socketFd, cmd, arg); // If result is 0, do not care about errno
         response.Push<u32>(errno);
         return {};
     }

@@ -87,6 +87,8 @@ namespace skyline::service::socket {
          */
         Result Listen(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
 
+        Result Fcntl(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
+
         /**
          * @brief Manipulates the options associated with a socket
          */
@@ -132,6 +134,7 @@ namespace skyline::service::socket {
             SFUNC(0xE, IClient, Connect),
             SFUNC(0x10, IClient, GetSockName),
             SFUNC(0x12, IClient, Listen),
+            SFUNC(0x14, IClient, Fcntl),
             SFUNC(0x15, IClient, SetSockOpt),
             SFUNC(0x16, IClient, Shutdown),
             SFUNC(0x17, IClient, ShutdownAllSockets),
