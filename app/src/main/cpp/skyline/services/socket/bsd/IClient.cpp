@@ -73,7 +73,7 @@ namespace skyline::service::socket {
         int socketFlags{request.Pop<int>()};
 
         span message = request.inputBuf.at(0);
-        long result = ::sendto(socketFd, request.inputBuf.at(0).data(), request.inputBuf.at(0).size(), socketFlags, (struct sockaddr*)&sockaddr, sizeof(sockaddr));
+        long result = ::sendto(socketFd, request.inputBuf.at(0).data(), request.inputBuf.at(0).size(), socketFlags, (struct sockaddr*)&sockaddrs[socketFd], sizeof(sockaddrs[socketFd]));
 
         response.Push<u32>(0); //result
         Logger::Warn("result {} errno {}", result, errno);
@@ -86,25 +86,44 @@ namespace skyline::service::socket {
     }
 
     Result IClient::Bind(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        return {};
+        int socketFd{request.Pop<int>()};
+
+        Logger::Warn("errno before {}", errno);
+        // https://docs.freebsd.org/en/books/developers-handbook/sockets/  (sockaddr_in structure)
+        sockaddrs[socketFd] = request.inputBuf.at(0).as<sockaddr_in>();
+        Logger::Warn("sin_family {} sin_port {}  sin_addr {}", sockaddrs[socketFd].sin_family, sockaddrs[socketFd].sin_port, sockaddrs[socketFd].sin_addr.s_addr);
+
+        sockaddrs[socketFd].sin_family >>= 8;
+        u16 sin_port = (sockaddrs[socketFd].sin_port>>8) | (sockaddrs[socketFd].sin_port<<8);
+        char ip[16];
+        ::inet_ntop(AF_INET,&sockaddrs[socketFd].sin_addr.s_addr,ip,sizeof(ip));
+
+        Logger::Warn("sin_family {} sin_port {}  sin_addr {}", sockaddrs[socketFd].sin_family, sin_port, ip);
+
+        int result = ::bind(socketFd, (struct sockaddr*)&sockaddrs[socketFd], sizeof(sockaddrs[socketFd]));
+
+        response.Push<u32>(0); //result
+        Logger::Warn("result {} errno {}", result, errno); // If result is 0, do not care about errno
+        response.Push<u32>(errno);  // Error code
+        return {};//
     }
 
     Result IClient::Connect(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         int socketFd{request.Pop<int>()};
         Logger::Warn("errno before {}", errno);
         // https://docs.freebsd.org/en/books/developers-handbook/sockets/  (sockaddr_in structure)
-        sockaddr = request.inputBuf.at(0).as<sockaddr_in>();
-        Logger::Warn("sin_family {} sin_port {}  sin_addr {}", sockaddr.sin_family, sockaddr.sin_port, sockaddr.sin_addr.s_addr);
+        sockaddrs[socketFd] = request.inputBuf.at(0).as<sockaddr_in>();
+        Logger::Warn("sin_family {} sin_port {}  sin_addr {}", sockaddrs[socketFd].sin_family, sockaddrs[socketFd].sin_port, sockaddrs[socketFd].sin_addr.s_addr);
 
-        sockaddr.sin_family >>= 8;
-        u16 sin_port = (sockaddr.sin_port>>8) | (sockaddr.sin_port<<8);
+        sockaddrs[socketFd].sin_family >>= 8;
+        u16 sin_port = (sockaddrs[socketFd].sin_port>>8) | (sockaddrs[socketFd].sin_port<<8);
         char ip[16];
-        ::inet_ntop(AF_INET,&sockaddr.sin_addr.s_addr,ip,sizeof(ip));
+        ::inet_ntop(AF_INET,&sockaddrs[socketFd].sin_addr.s_addr,ip,sizeof(ip));
         //sockaddr.sin_addr.s_addr = htonl(sockaddr.sin_addr.s_addr); Not necessary
 
-        Logger::Warn("sin_family {} sin_port {}  sin_addr {}", sockaddr.sin_family, sin_port, ip);
+        Logger::Warn("sin_family {} sin_port {}  sin_addr {}", sockaddrs[socketFd].sin_family, sin_port, ip);
 
-        int result = ::connect(socketFd, (struct sockaddr*)&sockaddr, sizeof(sockaddr));
+        int result = ::connect(socketFd, (struct sockaddr*)&sockaddrs[socketFd], sizeof(sockaddrs[socketFd]));
 
         response.Push<u32>(0); //result
         Logger::Warn("result {} errno {}", result, errno); // If result is 0, do not care about errno
@@ -112,12 +131,51 @@ namespace skyline::service::socket {
         return {};
     }
 
+    Result IClient::GetSockName(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        // TODO : FIX
+        int socketFd{request.Pop<int>()};
+
+        struct sockaddr_in copy;
+        bzero(&copy, sizeof(copy));
+        socklen_t len = sizeof(copy);
+        int result = ::getsockname(socketFd, (struct sockaddr*)&copy, &len);
+
+        request.outputBuf.at(0).copy_from(span<sockaddr_in>(&copy, 1));
+
+        sockaddrs[socketFd] = copy;
+
+            response.Push<u32>(0); //result
+        Logger::Warn("result {} errno {}", result, errno); // If result is 0, do not care about errno
+        response.Push<u32>(errno);  // Error code
+        return {};
+    }
+
     Result IClient::Listen(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        int socketFd{request.Pop<int>()};
+        int backlog{request.Pop<int>()};
+
+        int result = ::listen(socketFd, backlog);
+
+        response.Push<u32>(0); //result
+        Logger::Warn("result {} errno {}", result, errno); // If result is 0, do not care about errno
+        response.Push<u32>(errno);
         return {};
     }
 
     Result IClient::SetSockOpt(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        return {};
+        //https://www.ibm.com/docs/en/zos/2.3.0?topic=functions-setsockopt-set-options-associated-socket
+        int socketFd{request.Pop<int>()};
+        u32 level{request.Pop<u32>()};  // https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.socketoptionlevel?view=net-6.0   //Minecraft -> 65535  but for some reason returns errno 92
+        u32 option_name{request.Pop<u32>()};
+
+        Logger::Warn("socketFd {} level {} option_name 0x{:x} option_len {}", socketFd, level, option_name, request.inputBuf.at(0).size());
+
+        int result = ::setsockopt(socketFd, 6, option_name, request.inputBuf.at(0).data(), request.inputBuf.at(0).size());
+
+        response.Push<u32>(0); //result
+        Logger::Warn("result {} errno {}", result, errno); // If result is 0, do not care about errno
+        response.Push<u32>(errno);  // Error code
+        return {};//
     }
 
     Result IClient::Shutdown(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
