@@ -23,7 +23,6 @@ namespace skyline::service::socket {
         auto type{request.Pop<u32>()};
         auto protocol{request.Pop<u32>()};
 
-        Logger::Warn("Domain {}, Type {}, Protocol {}", domain, type, protocol);
         //https://jameshfisher.com/2017/02/27/socket-types/
         //https://students.mimuw.edu.pl/SO/Linux/Kod/include/linux/socket.h.html
         //Socket: Domain 2, Type 1, Protocol 6
@@ -31,6 +30,7 @@ namespace skyline::service::socket {
 
         //int BSD_Socket = ::socket(domain, type | SOCK_NONBLOCK | SOCK_CLOEXEC, protocol);
         int BSD_Socket = ::socket(domain, type, protocol);
+        Logger::Warn("SocketFd {} Domain {}, Type {}, Protocol {}", BSD_Socket, domain, type, protocol);
 
         response.Push<int>(BSD_Socket); // Socket descriptor
         response.Push<u32>(0);  // Error code
@@ -51,10 +51,10 @@ namespace skyline::service::socket {
         int socketFd{request.Pop<int>()};
         int socketFlags{request.Pop<int>()};
 
-        ::recv(socketFd, request.outputBuf.at(0).data(), request.outputBuf.at(0).size(), socketFlags);
+        long result = ::recv(socketFd, request.outputBuf.at(0).data(), request.outputBuf.at(0).size(), socketFlags);
 
+        Logger::Warn("SocketFd {} SocketFlags {} Result {} errno {}", socketFd, socketFlags, result, errno);
         response.Push<u32>(0); //result
-        Logger::Warn("errno {}", errno);
         response.Push<u32>(errno);  // Error code
         return {};
     }
@@ -76,7 +76,7 @@ namespace skyline::service::socket {
         long result = ::sendto(socketFd, request.inputBuf.at(0).data(), request.inputBuf.at(0).size(), socketFlags, (struct sockaddr*)&sockaddrs[socketFd], sizeof(sockaddrs[socketFd]));
 
         response.Push<u32>(0); //result
-        Logger::Warn("result {} errno {}", result, errno);
+        Logger::Warn("SocketFd {} SocketFlags {} Result {} errno {}", socketFd, socketFlags, result, errno);
         response.Push<u32>(errno);  // Error code
         return {};
     }
@@ -103,7 +103,7 @@ namespace skyline::service::socket {
         int result = ::bind(socketFd, (struct sockaddr*)&sockaddrs[socketFd], sizeof(sockaddrs[socketFd]));
 
         response.Push<u32>(0); //result
-        Logger::Warn("result {} errno {}", result, errno); // If result is 0, do not care about errno
+        Logger::Warn("SocketFd {} Result {} errno {}", socketFd, result, errno); // If result is 0, do not care about errno
         response.Push<u32>(errno);  // Error code
         return {};//
     }
@@ -126,7 +126,7 @@ namespace skyline::service::socket {
         int result = ::connect(socketFd, (struct sockaddr*)&sockaddrs[socketFd], sizeof(sockaddrs[socketFd]));
 
         response.Push<u32>(0); //result
-        Logger::Warn("result {} errno {}", result, errno); // If result is 0, do not care about errno
+        Logger::Warn("SocketFd {} Result {} errno {}", socketFd, result, errno); // If result is 0, do not care about errno
         response.Push<u32>(errno);  // Error code
         return {};
     }
@@ -140,13 +140,15 @@ namespace skyline::service::socket {
         socklen_t len = sizeof(copy);
         int result = ::getsockname(socketFd, (struct sockaddr*)&copy, &len);
 
-        request.outputBuf.at(0).copy_from(span<sockaddr_in>(&copy, 1));
+        //request.outputBuf.at(0).copy_from(span<sockaddr_in>(&copy, 1));
 
         sockaddrs[socketFd] = copy;
 
-            response.Push<u32>(0); //result
-        Logger::Warn("result {} errno {}", result, errno); // If result is 0, do not care about errno
+        Logger::Warn("Copy sin_family {} sin_port {}  sin_addr {}", copy.sin_family, copy.sin_port, copy.sin_addr.s_addr);
+        response.Push<u32>(0); //result
+        Logger::Warn("SocketFd {} Result {} errno {}", socketFd, result, errno); // If result is 0, do not care about errno
         response.Push<u32>(errno);  // Error code
+        response.Push<sockaddr_in>(copy);
         return {};
     }
 
@@ -157,7 +159,7 @@ namespace skyline::service::socket {
         int result = ::listen(socketFd, backlog);
 
         response.Push<u32>(0); //result
-        Logger::Warn("result {} errno {}", result, errno); // If result is 0, do not care about errno
+        Logger::Warn("SocketFd {} Backlog {} Result {} errno {}", socketFd, backlog, result, errno); // If result is 0, do not care about errno
         response.Push<u32>(errno);
         return {};
     }
@@ -173,7 +175,7 @@ namespace skyline::service::socket {
         int result = ::setsockopt(socketFd, 6, option_name, request.inputBuf.at(0).data(), request.inputBuf.at(0).size());
 
         response.Push<u32>(0); //result
-        Logger::Warn("result {} errno {}", result, errno); // If result is 0, do not care about errno
+        Logger::Warn("SocketFd {} Result {} errno {}", socketFd, result, errno); // If result is 0, do not care about errno
         response.Push<u32>(errno);  // Error code
         return {};//
     }
