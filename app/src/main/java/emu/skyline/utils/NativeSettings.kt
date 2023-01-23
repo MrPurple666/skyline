@@ -36,6 +36,7 @@ class NativeSettings(context : Context, pref : PreferenceSettings) {
 
     // Hacks
     var enableFastGpuReadbackHack : Boolean = if (pref.gamepCustomSettings) pref.gamepEnableFastGpuReadbackHack else pref.enableFastGpuReadbackHack
+    var disableSubgroupShuffle : Boolean = pref.disableSubgroupShuffle
 
     // Audio
     var isAudioOutputDisabled : Boolean = if (pref.gamepCustomSettings) pref.gamepIsAudioOutputDisabled else pref.isAudioOutputDisabled
