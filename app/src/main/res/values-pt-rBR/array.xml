@@ -12,6 +12,10 @@
         <item>Grade</item>
         <item>Grade Compacta</item>
     </string-array>
+    <string-array name="sort_apps_by">
+        <item>A-Z</item>
+        <item>Z-A</item>
+    </string-array>
     <string-array name="app_theme">
         <item>Claro</item>
         <item>Escuro</item>
