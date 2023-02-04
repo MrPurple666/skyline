@@ -124,4 +124,40 @@ namespace skyline::service::visrv {
 
         return {};
     }
+
+    Result IApplicationDisplayService::GetIndirectLayerImageMap(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        auto width{request.Pop<i64>()};
+        auto height{request.Pop<i64>()};
+
+        if (!request.outputBuf.empty()) {
+            // As we don't support indirect layers, we just fill the output buffer with red
+            auto imageBuffer{request.outputBuf.at(0)};
+            std::fill(imageBuffer.begin(), imageBuffer.end(), 0xFF0000FF);
+        }
+
+        response.Push<i64>(width);
+        response.Push<i64>(height);
+
+        return {};
+    }
+
+    Result IApplicationDisplayService::GetIndirectLayerImageRequiredMemoryInfo(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        i64 width{request.Pop<i64>()}, height{request.Pop<i64>()};
+
+        if (width <= 0 || height <= 0)
+            return result::InvalidDimensions;
+
+        constexpr size_t A8B8G8R8Size{4}; //!< The size of a pixel in the A8B8G8R8 format, this format is used by indirect layers
+        constexpr size_t AlignmentBytes{64}; //!< The alignment of the pitch and full buffer in bytes
+        u64 layerSize{static_cast<u64>(width) * static_cast<u64>(height) * A8B8G8R8Size};
+        u64 alignedLayerSize{util::AlignUp(layerSize, AlignmentBytes)};
+
+        constexpr size_t BlockSize{0x20000}; //!< The size of a block
+        constexpr size_t DefaultAlignment{0x1000}; //!< The default alignment of the buffer
+
+        response.Push<u64>((layerSize + BlockSize - 1) / (BlockSize * BlockSize)); // Calculate the number of blocks required to store the layer data
+        response.Push<u64>(DefaultAlignment);
+
+        return Result{};
+    }
 }
