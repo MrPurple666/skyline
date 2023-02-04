@@ -5,6 +5,7 @@
 
 #include <vfs/filesystem.h>
 #include <services/serviceman.h>
+#include <sys/statvfs.h>
 
 namespace skyline::service::fssrv {
     /**

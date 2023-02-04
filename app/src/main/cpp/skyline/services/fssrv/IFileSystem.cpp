@@ -87,8 +87,11 @@ namespace skyline::service::fssrv {
     }
 
     Result IFileSystem::GetFreeSpaceSize(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        //TODO: proper implementation for GetFreeSpaceSize
-        response.Push<u64>(90000000);
+        struct statvfs data;
+        if (fstatvfs(NULL, &data) < 0)
+          response.Push<u64>(0);
+        else
+          response.Push<u64>(data.f_bsize * data.f_bavail);
         return {};
     }
 }
