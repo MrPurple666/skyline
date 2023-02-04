@@ -147,15 +147,13 @@ namespace skyline::service::visrv {
         if (width <= 0 || height <= 0)
             return result::InvalidDimensions;
 
-        constexpr size_t A8B8G8R8Size{4}; //!< The size of a pixel in the A8B8G8R8 format, this format is used by indirect layers
-        constexpr size_t AlignmentBytes{64}; //!< The alignment of the pitch and full buffer in bytes
-        u64 layerSize{static_cast<u64>(width) * static_cast<u64>(height) * A8B8G8R8Size};
-        u64 alignedLayerSize{util::AlignUp(layerSize, AlignmentBytes)};
+        constexpr ssize_t A8B8G8R8Size{4}; //!< The size of a pixel in the A8B8G8R8 format, this format is used by indirect layers
+        i64 layerSize{width * height * A8B8G8R8Size};
 
-        constexpr size_t BlockSize{0x20000}; //!< The size of a block
+        constexpr ssize_t BlockSize{0x20000}; //!< The size of an arbitrarily defined block, the layer size must be aligned to a block
+        response.Push<i64>(util::AlignUpNpot<i64>(layerSize, BlockSize));
+
         constexpr size_t DefaultAlignment{0x1000}; //!< The default alignment of the buffer
-
-        response.Push<u64>((layerSize + BlockSize - 1) / (BlockSize * BlockSize)); // Calculate the number of blocks required to store the layer data
         response.Push<u64>(DefaultAlignment);
 
         return Result{};
