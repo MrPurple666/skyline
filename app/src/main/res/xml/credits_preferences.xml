@@ -2,11 +2,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <PreferenceCategory
         android:key="category_credits"
-        android:title="@string/credits" />
+        android:title="@string/credits"
+        app:initialExpandedChildrenCount="0" />
     <PreferenceCategory
         android:key="category_licenses"
         android:title="@string/licenses"
-        app:initialExpandedChildrenCount="5">
+        app:initialExpandedChildrenCount="4">
         <emu.skyline.preference.LicensePreference
             app:libraryCopyright="Copyright © 2019-2021\nSkyline Team and Contributors"
             app:libraryLicense="@string/mpl2_license"
