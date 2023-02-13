@@ -46,11 +46,8 @@ namespace skyline {
             useDirectMemoryImport = ktSettings.GetBool("useDirectMemoryImport");
             forceMaxGpuClocks = ktSettings.GetBool("forceMaxGpuClocks");
             enableFastGpuReadbackHack = ktSettings.GetBool("enableFastGpuReadbackHack");
-<<<<<<< HEAD
             disableShaderCache = ktSettings.GetBool("disableShaderCache");
-=======
             enableFastReadbackWrites = ktSettings.GetBool("enableFastReadbackWrites");
->>>>>>> 6160bc60 (Add an option to allow CPU writes when fast readback is used)
             disableSubgroupShuffle = ktSettings.GetBool("disableSubgroupShuffle");
             isAudioOutputDisabled = ktSettings.GetBool("isAudioOutputDisabled");
             validationLayer = ktSettings.GetBool("validationLayer");
