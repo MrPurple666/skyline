@@ -19,7 +19,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 import emu.skyline.R
 import emu.skyline.databinding.OnScreenEditActivityBinding
-import emu.skyline.utils.PreferenceSettings
+import emu.skyline.settings.PreferenceSettings
 import petrov.kristiyan.colorpicker.ColorPicker
 import javax.inject.Inject
 import kotlin.math.roundToInt
