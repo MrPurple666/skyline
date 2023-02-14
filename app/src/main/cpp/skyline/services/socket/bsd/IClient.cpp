@@ -3,6 +3,7 @@
 
 #include "IClient.h"
 #include <arpa/inet.h>
+#include <poll.h>
 
 namespace skyline::service::socket {
     IClient::IClient(const DeviceState &state, ServiceManager &manager) : BaseService(state, manager) {}
@@ -30,8 +31,9 @@ namespace skyline::service::socket {
         //        AF_INET SOCK_STREAM
 
         //int BSD_Socket = ::socket(domain, type | SOCK_NONBLOCK | SOCK_CLOEXEC, protocol);
+        if (protocol == 17) type = 2;
         int BSD_Socket = ::socket(domain, type, protocol);
-        Logger::Warn("SocketFd {} Domain {}, Type {}, Protocol {}", BSD_Socket, domain, type, protocol);
+        Logger::Warn("SocketFd {} Domain {}, Type {}, Protocol {} Errno {}", BSD_Socket, domain, type, protocol, errno);
 
         response.Push<int>(BSD_Socket); // Socket descriptor
         response.Push<u32>(0);  // Error code
@@ -44,6 +46,7 @@ namespace skyline::service::socket {
     }
 
     Result IClient::Poll(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        //int result = ::poll(struct pollfd listptr[], nfds_t nmsgsfds, int timeout);
         return {};
     }
 
