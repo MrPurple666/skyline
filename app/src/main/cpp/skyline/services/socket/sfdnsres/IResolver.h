@@ -12,5 +12,11 @@ namespace skyline::service::socket {
     class IResolver : public BaseService {
       public:
         IResolver(const DeviceState &state, ServiceManager &manager);
+
+        Result GetAddrInfoRequest(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
+
+        SERVICE_DECL(
+          SFUNC(0x6, IResolver, GetAddrInfoRequest)
+        )
     };
 }
