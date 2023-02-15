@@ -317,13 +317,24 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         executeApplication(intent!!)
     }
 
+    fun pauseEmulator() {
+        setSurface(null)
+        changeAudioStatus(false)
+    }
+
+    fun resumeEmulator() {
+        gameSurface?.let { setSurface(it) }
+        if (!preferenceSettings.isAudioOutputDisabled)
+            changeAudioStatus(true)
+    }
+
     override fun onPause() {
         super.onPause()
 
         if (if (preferenceSettings.gamepCustomSettings) preferenceSettings.gamepForceMaxGpuClocks else preferenceSettings.forceMaxGpuClocks)
             GpuDriverHelper.forceMaxGpuClocks(false)
 
-        changeAudioStatus(false)
+        pauseEmulator()
     }
 
     override fun onStart() {
@@ -339,19 +350,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     override fun onResume() {
         super.onResume()
 
-        if (preferenceSettings.forceMaxGpuClocks)
-            GpuDriverHelper.forceMaxGpuClocks(true)
-
-        // Android might not allow child views to overlap the system bars
-        // Override this behavior and force content to extend into the cutout area
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        WindowInsetsControllerCompat(window, window.decorView).let { controller ->
-            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            controller.hide(WindowInsetsCompat.Type.systemBars())
-        }
-
-        changeAudioStatus(true)
+        resumeEmulator()
 
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
@@ -370,7 +369,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
             pictureInPictureReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context : Context?, intent : Intent) {
                     if (intent.action == pauseIntentAction)
-                        setSurface(null)
+                        pauseEmulator()
                     else if (intent.action == muteIntentAction)
                         changeAudioStatus(false)
                 }
@@ -394,10 +393,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
                 // Perfectly acceptable and should be ignored
             }
 
-            gameSurface?.let { setSurface(it) }
-
-            if (!preferenceSettings.isAudioOutputDisabled)
-                changeAudioStatus(true)
+            resumeEmulator()
             
             binding.onScreenControllerView.apply {
                 controllerType = inputHandler.getFirstControllerType()
