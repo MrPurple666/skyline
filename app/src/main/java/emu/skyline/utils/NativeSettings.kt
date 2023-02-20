@@ -33,6 +33,7 @@ class NativeSettings(context : Context, pref : PreferenceSettings) {
     var executorFlushThreshold : Int = if (pref.gamepCustomSettings) pref.gamepExecutorFlushThreshold else pref.executorFlushThreshold
     var useDirectMemoryImport : Boolean = if (pref.gamepCustomSettings) pref.gamepUseDirectMemoryImport else pref.useDirectMemoryImport
     var forceMaxGpuClocks : Boolean = if (pref.gamepCustomSettings) pref.gamepForceMaxGpuClocks else pref.forceMaxGpuClocks
+    var freeGuestTextureMemory : Boolean = pref.freeGuestTextureMemory
 
     // Hacks
     var enableFastGpuReadbackHack : Boolean = if (pref.gamepCustomSettings) pref.gamepEnableFastGpuReadbackHack else pref.enableFastGpuReadbackHack
