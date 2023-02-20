@@ -45,6 +45,8 @@ namespace skyline {
             executorFlushThreshold = ktSettings.GetInt<u32>("executorFlushThreshold");
             useDirectMemoryImport = ktSettings.GetBool("useDirectMemoryImport");
             forceMaxGpuClocks = ktSettings.GetBool("forceMaxGpuClocks");
+            disableShaderCache = ktSettings.GetBool("disableShaderCache");
+            freeGuestTextureMemory = ktSettings.GetBool("freeGuestTextureMemory");
             enableFastGpuReadbackHack = ktSettings.GetBool("enableFastGpuReadbackHack");
 <<<<<<< HEAD
             disableShaderCache = ktSettings.GetBool("disableShaderCache");

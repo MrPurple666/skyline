@@ -191,6 +191,11 @@
             android:summaryOn="@string/shader_cache_disabled"
             app:key="disable_shader_cache"
             app:title="@string/shader_cache" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:summary="@string/free_guest_texture_memory_desc"
+            app:key="free_guest_texture_memory"
+            app:title="@string/free_guest_texture_memory" />
     </PreferenceCategory>
     <PreferenceCategory
         android:key="category_hacks"
