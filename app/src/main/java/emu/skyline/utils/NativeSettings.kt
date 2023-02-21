@@ -33,12 +33,12 @@ class NativeSettings(context : Context, pref : PreferenceSettings) {
     var executorFlushThreshold : Int = if (pref.gamepCustomSettings) pref.gamepExecutorFlushThreshold else pref.executorFlushThreshold
     var useDirectMemoryImport : Boolean = if (pref.gamepCustomSettings) pref.gamepUseDirectMemoryImport else pref.useDirectMemoryImport
     var forceMaxGpuClocks : Boolean = if (pref.gamepCustomSettings) pref.gamepForceMaxGpuClocks else pref.forceMaxGpuClocks
-    var freeGuestTextureMemory : Boolean =if (pref.gamepCustomSettings) pref.gamepFreeGuestTextureMemory else  pref.freeGuestTextureMemory
+    var freeGuestTextureMemory : Boolean = if (pref.gamepCustomSettings) pref.gamepFreeGuestTextureMemory else pref.freeGuestTextureMemory
 
     // Hacks
     var enableFastGpuReadbackHack : Boolean = if (pref.gamepCustomSettings) pref.gamepEnableFastGpuReadbackHack else pref.enableFastGpuReadbackHack
-    var enableFastReadbackWrites : Boolean = if (gamepCustomSettings) pref.gamepEnableFastReadbackWrites else pref.enableFastReadbackWrites
-    var disableSubgroupShuffle : Boolean = if (gamepCustomSettibgs) pref.gamepDisableSubgroupShuffle else pref.disableSubgroupShuffle
+    var enableFastReadbackWrites : Boolean = if (pref.gamepCustomSettings) pref.gamepEnableFastReadbackWrites else pref.enableFastReadbackWrites
+    var disableSubgroupShuffle : Boolean = if (pref.gamepCustomSettings) pref.gamepDisableSubgroupShuffle else pref.disableSubgroupShuffle
 
     // Audio
     var isAudioOutputDisabled : Boolean = if (pref.gamepCustomSettings) pref.gamepIsAudioOutputDisabled else pref.isAudioOutputDisabled
