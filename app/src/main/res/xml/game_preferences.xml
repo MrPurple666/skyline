@@ -138,7 +138,7 @@
             app:title="@string/enable_fast_gpu_readback" />
         <CheckBoxPreference
             android:defaultValue="false"
-            android:dependency="enable_fast_gpu_readback_hack"
+            android:dependency="gamep_enable_fast_readback_writes"
             android:summaryOff="@string/enable_fast_readback_writes_disabled"
             android:summaryOn="@string/enable_fast_readback_writes_enabled"
             app:key="gamep_enable_fast_readback_writes"
