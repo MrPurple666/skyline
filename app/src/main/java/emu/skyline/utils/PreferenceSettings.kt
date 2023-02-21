@@ -95,7 +95,7 @@ class PreferenceSettings @Inject constructor(@ApplicationContext private val con
     var gamepExecutorFlushThreshold by sharedPreferences(context, 256)
     var gamepUseDirectMemoryImport by sharedPreferences(context, false)
     var gamepForceMaxGpuClocks by sharedPreferences(context, false)
-    var gamepFreeGuestTextureMemory by sharedPreferences(context, true)
+    var gamepFreeGuestTextureMemory by sharedPreferences(context, false)
 
     // Hacks
     var gamepEnableFastGpuReadbackHack by sharedPreferences(context, false)
