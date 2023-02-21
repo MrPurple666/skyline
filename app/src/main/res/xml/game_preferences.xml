@@ -120,6 +120,11 @@
             android:summaryOn="@string/shader_cache_enabled"
             app:key="gamep_shader_cache"
 	    app:title="@string/shader_cache" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:summary="@string/free_guest_texture_memory_desc"
+            app:key="gamep_free_guest_texture_memory"
+            app:title="@string/free_guest_texture_memory" />
     </PreferenceCategory>
     <PreferenceCategory
         android:key="gamep_category_hacks"
@@ -131,6 +136,19 @@
             android:summaryOn="@string/enable_fast_gpu_readback_enabled"
             app:key="gamep_enable_fast_gpu_readback_hack"
             app:title="@string/enable_fast_gpu_readback" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="enable_fast_gpu_readback_hack"
+            android:summaryOff="@string/enable_fast_readback_writes_disabled"
+            android:summaryOn="@string/enable_fast_readback_writes_enabled"
+            app:key="gamep_enable_fast_readback_writes"
+            app:title="@string/enable_fast_readback_writes" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:summaryOff="@string/disable_subgroup_shuffle_disabled"
+            android:summaryOn="@string/disable_subgroup_shuffle_enabled"
+            app:key="gamep_disable_subgroup_shuffle"
+            app:title="@string/disable_subgroup_shuffle" />
     </PreferenceCategory>
     <PreferenceCategory
         android:key="gamep_category_audio"

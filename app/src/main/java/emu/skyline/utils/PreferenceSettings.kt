@@ -95,9 +95,12 @@ class PreferenceSettings @Inject constructor(@ApplicationContext private val con
     var gamepExecutorFlushThreshold by sharedPreferences(context, 256)
     var gamepUseDirectMemoryImport by sharedPreferences(context, false)
     var gamepForceMaxGpuClocks by sharedPreferences(context, false)
+    var gamepFreeGuestTextureMemory by sharedPreferences(context, true)
 
     // Hacks
     var gamepEnableFastGpuReadbackHack by sharedPreferences(context, false)
+    var gamepEnableFastReadbackWrites by sharedPreferences(context, false)
+    var gamepDisableSubgroupShuffle by sharedPreferences(context, false)
 
     // Audio
     var gamepIsAudioOutputDisabled by sharedPreferences(context, false)

@@ -161,6 +161,9 @@ class GameSettingsActivity : AppCompatActivity() {
             findPreference<CheckBoxPreference>("gamep_validation_layer")!!.isChecked = gameData.validationLayer
             findPreference<CheckBoxPreference>("gamep_shader_cache")!!.isChecked = gameData.disableShaderCache
 	    findPreference<CheckBoxPreference>("gamep_internet_enabled")!!.isChecked = gameData.internetEnabled
+	    findPreference<CheckBoxPreference>("gamep_free_guest_texture_memory")!!.isChecked = gameData.freeGuestTextureMemory
+	    findPreference<CheckBoxPreference>("gamep_disable_subgroup_shuffle")!!.isChecked = gameData.disableSubgroupShuffle
+	    findPreference<CheckBoxPreference>("gamep_enable_fast_readback_writes")!!.isChecked = gameData.enableFastReadbackWrites
         }
 
         override fun onDisplayPreferenceDialog(preference : Preference) {
@@ -202,6 +205,9 @@ class GameSettingsActivity : AppCompatActivity() {
             gameData.validationLayer = context?.let { PreferenceSettings(it).gamepValidationLayer }!!
             gameData.disableShaderCache = context?.let { PreferenceSettings(it).gamepDisableShaderCache }!!
 	    gameData.internetEnabled = context?.let { PreferenceSettings(it).gamepInternetEnabled }!!
+	    gameData.freeGuestTextureMemory = context?.let { PreferenceSettings(it).gamepFreeGuestTextureMemory }!!
+	    gameData.disableSubgroupShuffle = context?.let { PreferenceSettings(it).gamepDisableSubgroupShuffle }!!
+	    gameData.enableFastReadbackWrites = context?.let { PreferenceSettings(it).gamepEnableFastReadbackWrites }!!
 
             gameDataHandler.saveGameData(context, gameData)
 

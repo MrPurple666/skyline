@@ -133,7 +133,9 @@ class GameDataHandler() {
             settings?.putBoolean("gamep_validation_layer", gameData.validationLayer)
             settings?.putBoolean("gamep_disable_cache", gameData.disableShaderCache)
 	    settings?.putBoolean("gamep_internet_enabled", gameData.internetEnabled)
-        }
+	    settings?.putBoolean("gamep_free_guest_texture_memory", gameData.freeGuestTextureMemory)
+	    settings?.putBoolean("gamep_enable_fast_readback_writes", gameData.enableFastReadbackWrites)
+	    settings?.putBoolean("gamep_disable_subgroup_shuffle", gameData.disableSubgroupShuffle)        }
 
         settings?.commit()
     }
@@ -163,8 +165,11 @@ class GameDataHandler() {
         var executorFlushThreshold : Int = 256
         var useDirectMemoryImport : Boolean = false
         var forceMaxGpuClocks : Boolean = false
+	var freeGuestTextureMemory : Boolean = false
         // Hacks
         var enableFastGpuReadbackHack : Boolean = false
+	var enableFastReadbackWrites : Boolean = false
+	var disableSubgroupShuffle : Boolean = false
         // Audio
         var isAudioOutputDisabled : Boolean = false
         // Debug
