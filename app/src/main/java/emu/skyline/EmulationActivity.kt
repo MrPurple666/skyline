@@ -34,10 +34,11 @@ import emu.skyline.applet.swkbd.SoftwareKeyboardDialog
 import emu.skyline.databinding.EmuActivityBinding
 import emu.skyline.input.*
 import emu.skyline.loader.getRomFormat
+import emu.skyline.settings.AppSettings
+import emu.skyline.settings.EmulationSettings
+import emu.skyline.settings.NativeSettings
 import emu.skyline.utils.ByteBufferSerializable
 import emu.skyline.utils.GpuDriverHelper
-import emu.skyline.settings.NativeSettings
-import emu.skyline.settings.PreferenceSettings
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.FutureTask
@@ -87,7 +88,9 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     private lateinit var pictureInPictureReceiver : BroadcastReceiver
 
     @Inject
-    lateinit var preferenceSettings : PreferenceSettings
+    lateinit var appSettings : AppSettings
+
+    lateinit var emulationSettings : EmulationSettings
 
     @Inject
     lateinit var inputManager : InputManager
@@ -222,9 +225,12 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     @SuppressLint("SetTextI18n", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
-        requestedOrientation = preferenceSettings.orientation
+        emulationSettings = EmulationSettings.global
+
+        requestedOrientation = emulationSettings.orientation
         window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        inputHandler = InputHandler(inputManager, preferenceSettings)
+        inputHandler = InputHandler(inputManager, emulationSettings)
+        nativeSettings = NativeSettings(this, emulationSettings)
         setContentView(binding.root)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -238,30 +244,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
             }
         }
 
-        pictureInPictureParamsBuilder = PictureInPictureParams.Builder()
-
-        val pictureInPictureActions : MutableList<RemoteAction> = mutableListOf()
-        val pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-
-        val pauseIcon = Icon.createWithResource(this, R.drawable.ic_pause)
-        val pausePendingIntent = PendingIntent.getBroadcast(this, R.drawable.ic_pause, Intent(intentActionPause), pendingFlags)
-        val pauseRemoteAction = RemoteAction(pauseIcon, getString(R.string.pause), getString(R.string.pause_emulator), pausePendingIntent)
-        pictureInPictureActions.add(pauseRemoteAction)
-
-        if (!preferenceSettings.isAudioOutputDisabled) {
-            val muteIcon = Icon.createWithResource(this, R.drawable.ic_volume_mute)
-            val mutePendingIntent = PendingIntent.getBroadcast(this, R.drawable.ic_volume_mute, Intent(intentActionMute), pendingFlags)
-            val muteRemoteAction = RemoteAction(muteIcon, getString(R.string.mute), getString(R.string.disable_audio_output), mutePendingIntent)
-            pictureInPictureActions.add(muteRemoteAction)
-        }
-
-        pictureInPictureParamsBuilder.setActions(pictureInPictureActions)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            pictureInPictureParamsBuilder.setAutoEnterEnabled(true)
-
-        setPictureInPictureParams(pictureInPictureParamsBuilder.build())
-
-        if (preferenceSettings.respectDisplayCutout) {
+        if (emulationSettings.respectDisplayCutout) {
             binding.perfStats.setOnApplyWindowInsetsListener(insetsOrMarginHandler)
             binding.onScreenControllerToggle.setOnApplyWindowInsetsListener(insetsOrMarginHandler)
         }
@@ -269,15 +252,15 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         binding.gameView.holder.addCallback(this)
 
         binding.gameView.setAspectRatio(
-            when (preferenceSettings.aspectRatio) {
+            when (emulationSettings.aspectRatio) {
                 0 -> Rational(16, 9)
                 1 -> Rational(21, 9)
                 else -> null
             }
         )
 
-        if (preferenceSettings.perfStats) {
-            if (preferenceSettings.disableFrameThrottling)
+        if (appSettings.perfStats) {
+            if (emulationSettings.disableFrameThrottling)
                 binding.perfStats.setTextColor(getColor(R.color.colorPerfStatsSecondary))
 
             binding.perfStats.apply {
@@ -289,14 +272,17 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
                     }
                 }, 250)
                 setOnClickListener {
-                    preferenceSettings.disableFrameThrottling = !preferenceSettings.disableFrameThrottling
-                    var color = if (preferenceSettings.disableFrameThrottling) getColor(R.color.colorPerfStatsSecondary) else getColor(R.color.colorPerfStatsPrimary)
+                    val newValue = !emulationSettings.disableFrameThrottling
+                    emulationSettings.disableFrameThrottling = newValue
+                    nativeSettings.disableFrameThrottling = newValue
+
+                    val color = if (newValue) getColor(R.color.colorPerfStatsSecondary) else getColor(R.color.colorPerfStatsPrimary)
                     binding.perfStats.setTextColor(color)
                 }
             }
         }
 
-        force60HzRefreshRate(!preferenceSettings.maxRefreshRate)
+        force60HzRefreshRate(!emulationSettings.maxRefreshRate)
         getSystemService<DisplayManager>()?.registerDisplayListener(this, null)
 
         binding.gameView.setOnTouchListener(this)
@@ -304,11 +290,11 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         // Hide on screen controls when first controller is not set
         binding.onScreenControllerView.apply {
             controllerType = inputHandler.getFirstControllerType()
-            isGone = controllerType == ControllerType.None || !preferenceSettings.onScreenControl
+            isGone = controllerType == ControllerType.None || !appSettings.onScreenControl
             setOnButtonStateChangedListener(::onButtonStateChanged)
             setOnStickStateChangedListener(::onStickStateChanged)
-            hapticFeedback = preferenceSettings.onScreenControl && preferenceSettings.onScreenControlFeedback
-            recenterSticks = preferenceSettings.onScreenControlRecenterSticks
+            hapticFeedback = appSettings.onScreenControl && appSettings.onScreenControlFeedback
+            recenterSticks = appSettings.onScreenControlRecenterSticks
         }
 
         binding.onScreenControllerToggle.apply {
@@ -352,7 +338,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     override fun onPause() {
         super.onPause()
 
-        if (preferenceSettings.forceMaxGpuClocks)
+        if (emulationSettings.forceMaxGpuClocks)
             GpuDriverHelper.forceMaxGpuClocks(false)
 
         pauseEmulator()
@@ -453,7 +439,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         // Stop forcing 60Hz on exit to allow the skyline UI to run at high refresh rates
         getSystemService<DisplayManager>()?.unregisterDisplayListener(this)
         force60HzRefreshRate(false)
-        if (preferenceSettings.forceMaxGpuClocks)
+        if (emulationSettings.forceMaxGpuClocks)
             GpuDriverHelper.forceMaxGpuClocks(false)
 
         stopEmulation(false)
@@ -466,7 +452,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
         // Note: We need FRAME_RATE_COMPATIBILITY_FIXED_SOURCE as there will be a degradation of user experience with FRAME_RATE_COMPATIBILITY_DEFAULT due to game speed alterations when the frame rate doesn't match the display refresh rate
-            holder.surface.setFrameRate(desiredRefreshRate, if (preferenceSettings.maxRefreshRate) Surface.FRAME_RATE_COMPATIBILITY_DEFAULT else Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE)
+            holder.surface.setFrameRate(desiredRefreshRate, if (emulationSettings.maxRefreshRate) Surface.FRAME_RATE_COMPATIBILITY_DEFAULT else Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE)
 
         while (emulationThread!!.isAlive)
             if (setSurface(holder.surface)) {
@@ -482,7 +468,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         Log.d(Tag, "surfaceChanged Holder: $holder, Format: $format, Width: $width, Height: $height")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            holder.surface.setFrameRate(desiredRefreshRate, if (preferenceSettings.maxRefreshRate) Surface.FRAME_RATE_COMPATIBILITY_DEFAULT else Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE)
+            holder.surface.setFrameRate(desiredRefreshRate, if (emulationSettings.maxRefreshRate) Surface.FRAME_RATE_COMPATIBILITY_DEFAULT else Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE)
     }
 
     override fun surfaceDestroyed(holder : SurfaceHolder) {
@@ -632,7 +618,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         @Suppress("DEPRECATION")
         val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display!! else windowManager.defaultDisplay
         if (display.displayId == displayId)
-            force60HzRefreshRate(!preferenceSettings.maxRefreshRate)
+            force60HzRefreshRate(!emulationSettings.maxRefreshRate)
     }
 
     override fun onDisplayAdded(displayId : Int) {}
