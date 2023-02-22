@@ -41,11 +41,7 @@ android {
         // Only enable separate process for release builds
         manifestPlaceholders += [emulationProcess: ""]
 
-<<<<<<< HEAD
-        def locales = ["en", "de", "el", "es", "fr", "id", "it", "ja", "ko", "pl", "ru", "ta", "zh-Hans", "zh-Hant"]
-=======
-        def locales = ["en", "de", "el", "es", "es-149", "fr", "hu", "id", "it", "ja", "ko", "pl", "ru", "ta", "zh-Hans", "zh-Hant"]
->>>>>>> 7dbd70f43 (Enable localization for app strings)
+        def locales = ["en", "pt-rBR", "de", "el", "es", "es-149", "fr", "hu", "id", "it", "ja", "ko", "pl", "ru", "ta", "zh-Hans", "zh-Hant"]
 
         // Add available locales to the build config so that they can be accessed from the app
         buildConfigField "String[]", "AVAILABLE_APP_LANGUAGES", "new String[]{\"" + locales.join("\",\"") + "\"}"
