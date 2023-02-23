@@ -215,6 +215,10 @@
     <string name="shoulder_trigger">Shoulder &amp; Trigger Buttons</string>
     <string name="shoulder_rail">Shoulder Buttons on Joy-Con Rail</string>
     <string name="misc_buttons">Miscellaneous Buttons</string>
+    <!-- Picture-In-Picture -->
+    <string name="pause">Pause</string>
+    <string name="pause_emulator">Pause emulator process</string>
+    <string name="mute">Mute</string>
     <!-- Credits -->
     <string name="credits">Credits</string>
     <!-- Licenses -->
