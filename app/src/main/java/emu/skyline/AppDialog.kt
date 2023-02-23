@@ -46,7 +46,7 @@ class AppDialog : BottomSheetDialogFragment() {
 
     private lateinit var binding : AppDialogBinding
 
-    private val item by lazy { requireArguments().getSerializable(AppItemTag)!! as AppItem }
+    private val item by lazy { requireArguments().serializable<AppItem>(AppItemTag)!! }
 
     /**
      * This inflates the layout of the dialog after initial view creation

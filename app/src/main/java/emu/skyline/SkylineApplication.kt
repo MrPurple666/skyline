@@ -7,14 +7,27 @@ package emu.skyline
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
 import dagger.hilt.android.HiltAndroidApp
 import emu.skyline.di.getSettings
 import java.io.File
+import java.io.Serializable
 
 /**
  * @return The optimal directory for putting public files inside, this may return a private directory if a public directory cannot be retrieved
  */
 fun Context.getPublicFilesDir() : File = getExternalFilesDir(null) ?: filesDir
+
+inline fun <reified T : Serializable> Bundle.serializable(key: String): T? = when {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getSerializable(key, T::class.java)
+    else -> @Suppress("DEPRECATION") getSerializable(key) as? T
+}
+inline fun <reified T : Serializable> Intent.serializable(key: String): T? = when {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getSerializableExtra(key, T::class.java)
+    else -> @Suppress("DEPRECATION") getSerializableExtra(key) as? T
+}
 
 @HiltAndroidApp
 class SkylineApplication : Application() {
