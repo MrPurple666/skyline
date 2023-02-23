@@ -351,7 +351,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     fun resumeEmulator() {
         if (!isEmulatorPaused) return
         gameSurface?.let { setSurface(it) }
-        if (!preferenceSettings.isAudioOutputDisabled)
+        if (!emulationSettings.isAudioOutputDisabled)
             changeAudioStatus(true)
         isEmulatorPaused = false
     }
@@ -403,7 +403,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         val pauseRemoteAction = RemoteAction(pauseIcon, getString(R.string.pause), getString(R.string.pause_emulator), pausePendingIntent)
         pictureInPictureActions.add(pauseRemoteAction)
 
-        if (!preferenceSettings.isAudioOutputDisabled) {
+        if (!emulationSettings.isAudioOutputDisabled) {
             val muteIcon = Icon.createWithResource(this, R.drawable.ic_volume_mute)
             val mutePendingIntent = PendingIntent.getBroadcast(this, R.drawable.ic_volume_mute, Intent(intentActionMute), pendingFlags)
             val muteRemoteAction = RemoteAction(muteIcon, getString(R.string.mute), getString(R.string.disable_audio_output), mutePendingIntent)
@@ -433,7 +433,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
             IntentFilter().apply {
                 addAction(intentActionPause)
-                if (!preferenceSettings.isAudioOutputDisabled)
+                if (!emulationSettings.isAudioOutputDisabled)
                     addAction(intentActionMute)
             }.also {
                 registerReceiver(pictureInPictureReceiver, it)
@@ -454,7 +454,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
             
             binding.onScreenControllerView.apply {
                 controllerType = inputHandler.getFirstControllerType()
-                isGone = controllerType == ControllerType.None || !preferenceSettings.onScreenControl
+                isGone = controllerType == ControllerType.None || !appSettings.onScreenControl
             }
             binding.onScreenControllerToggle.apply {
                 isGone = binding.onScreenControllerView.isGone
