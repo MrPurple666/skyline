@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ rebase ]
+    branches: [ rebase-v2 ]
   workflow_dispatch:
  
 jobs:
