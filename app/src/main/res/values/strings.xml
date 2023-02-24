@@ -67,6 +67,8 @@
     <string name="profile_picture">Profile picture</string>
     <string name="system_language">System language</string>
     <string name="system_region">System region</string>
+    <string name="app_language">App Language</string>
+    <string name="app_language_default">Use System Default</string>
     <!-- Settings - Display -->
     <string name="display">Display</string>
     <string name="perf_stats">Show Performance Statistics</string>

@@ -54,5 +54,9 @@
             android:summaryOn="@string/select_action_desc_on"
             app:key="select_action"
             app:title="@string/select_action" />
+        <emu.skyline.preference.LanguagePreference
+            app:key="app_language"
+            app:persistent="false"
+            app:title="@string/app_language" />
     </PreferenceCategory>
 </androidx.preference.PreferenceScreen>
