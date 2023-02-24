@@ -25,7 +25,9 @@ import android.view.*
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
-import androidx.core.view.*
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
+import androidx.core.view.updateMargins
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -81,12 +83,12 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     /**
      * If the activity should return to [MainActivity] or just call [finishAffinity]
      */
-    private var returnToMain : Boolean = false
+    var returnToMain : Boolean = false
 
     /**
      * The desired refresh rate to present at in Hz
      */
-    private var desiredRefreshRate = 60f
+    var desiredRefreshRate = 60f
 
     private var isEmulatorPaused = false
 
@@ -97,6 +99,8 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
     @Inject
     lateinit var appSettings : AppSettings
+
+    lateinit var nativeSettings : NativeSettings
 
     lateinit var emulationSettings : EmulationSettings
 
@@ -657,7 +661,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         return ((major shl 22) or (minor shl 12) or (patch)).toInt()
     }
 
-    private val insetsOrMarginHandler = View.OnApplyWindowInsetsListener { view, insets ->
+    val insetsOrMarginHandler = View.OnApplyWindowInsetsListener { view, insets ->
         insets.displayCutout?.let {
             val defaultHorizontalMargin = view.resources.getDimensionPixelSize(R.dimen.onScreenItemHorizontalMargin)
             val left = if (it.safeInsetLeft == 0) defaultHorizontalMargin else it.safeInsetLeft
