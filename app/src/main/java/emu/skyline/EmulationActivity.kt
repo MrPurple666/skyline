@@ -415,7 +415,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         val pauseRemoteAction = RemoteAction(pauseIcon, getString(R.string.pause), getString(R.string.pause_emulator), pausePendingIntent)
         pictureInPictureActions.add(pauseRemoteAction)
 
-        if (!preferenceSettings.isAudioOutputDisabled) {
+        if (!emulationSettings.isAudioOutputDisabled) {
             val muteIcon = Icon.createWithResource(this, R.drawable.ic_volume_mute)
             val mutePendingIntent = PendingIntent.getBroadcast(this, R.drawable.ic_volume_mute, Intent(intentActionMute), pendingFlags)
             val muteRemoteAction = RemoteAction(muteIcon, getString(R.string.mute), getString(R.string.disable_audio_output), mutePendingIntent)
