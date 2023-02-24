@@ -227,7 +227,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
         GpuDriverHelper.ensureFileRedirectDir(this)
         emulationThread = Thread {
-            executeApplication(rom.toString(), romType, romFd.detachFd(), nativeSettings, applicationContext.getPublicFilesDir().canonicalPath + "/", applicationContext.filesDir.canonicalPath + "/", applicationInfo.nativeLibraryDir + "/", assets)
+        executeApplication(rom.toString(), romType, romFd.detachFd(), nativeSettings, applicationContext.getPublicFilesDir().canonicalPath + "/", applicationContext.filesDir.canonicalPath + "/", applicationInfo.nativeLibraryDir + "/", assets)
             returnFromEmulation()
         }
 
@@ -391,43 +391,15 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
         resumeEmulator()
 
-        // Android might not allow child views to overlap the system bars
-        // Override this behavior and force content to extend into the cutout area
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        WindowInsetsControllerCompat(window, window.decorView).let { controller ->
-            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            controller.hide(WindowInsetsCompat.Type.systemBars())
-        }
-
-        changeAudioStatus(true)
-    }
-
-    private fun getPictureInPictureBuilder() : PictureInPictureParams.Builder {
-        val pictureInPictureParamsBuilder = PictureInPictureParams.Builder()
-
-        val pictureInPictureActions : MutableList<RemoteAction> = mutableListOf()
-        val pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-
-        val pauseIcon = Icon.createWithResource(this, R.drawable.ic_pause)
-        val pausePendingIntent = PendingIntent.getBroadcast(this, R.drawable.ic_pause, Intent(intentActionPause), pendingFlags)
-        val pauseRemoteAction = RemoteAction(pauseIcon, getString(R.string.pause), getString(R.string.pause_emulator), pausePendingIntent)
-        pictureInPictureActions.add(pauseRemoteAction)
-
-        if (!emulationSettings.isAudioOutputDisabled) {
-            val muteIcon = Icon.createWithResource(this, R.drawable.ic_volume_mute)
-            val mutePendingIntent = PendingIntent.getBroadcast(this, R.drawable.ic_volume_mute, Intent(intentActionMute), pendingFlags)
-            val muteRemoteAction = RemoteAction(muteIcon, getString(R.string.mute), getString(R.string.disable_audio_output), mutePendingIntent)
-            pictureInPictureActions.add(muteRemoteAction)
-        }
-
-        pictureInPictureParamsBuilder.setActions(pictureInPictureActions)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            pictureInPictureParamsBuilder.setAutoEnterEnabled(true)
-
-        setPictureInPictureParams(pictureInPictureParamsBuilder.build())
-
-        return pictureInPictureParamsBuilder
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN)
+       }
     }
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
