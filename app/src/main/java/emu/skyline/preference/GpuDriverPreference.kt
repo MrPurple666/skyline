@@ -13,8 +13,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.preference.Preference
 import androidx.preference.Preference.SummaryProvider
 import androidx.preference.R
+import emu.skyline.data.AppItem
+import emu.skyline.data.AppItemTag
+import emu.skyline.settings.EmulationSettings
 import emu.skyline.utils.GpuDriverHelper
-import emu.skyline.utils.PreferenceSettings
 import emu.skyline.R as SkylineR
 
 /**
@@ -25,13 +27,19 @@ class GpuDriverPreference @JvmOverloads constructor(context : Context, attrs : A
         notifyChanged()
     }
 
+    /**
+     * The app item being configured, used to load the correct settings in [GpuDriverActivity]
+     * This is populated by [emu.skyline.settings.GameSettingsFragment]
+     */
+    var item : AppItem? = null
+
     init {
         val supportsCustomDriverLoading = GpuDriverHelper.supportsCustomDriverLoading()
         if (supportsCustomDriverLoading) {
             summaryProvider = SummaryProvider<GpuDriverPreference> {
-                sharedPreferences?.getString(key, PreferenceSettings.SYSTEM_GPU_DRIVER)?.let {
+                sharedPreferences?.getString(key, EmulationSettings.SYSTEM_GPU_DRIVER)?.let {
                     var driver = it
-                    if (it == PreferenceSettings.SYSTEM_GPU_DRIVER)
+                    if (it == EmulationSettings.SYSTEM_GPU_DRIVER)
                         driver = context.getString(SkylineR.string.system_driver)
 
                     context.getString(SkylineR.string.gpu_driver_config_desc, driver)
@@ -48,5 +56,7 @@ class GpuDriverPreference @JvmOverloads constructor(context : Context, attrs : A
     /**
      * This launches [GpuDriverActivity] on click to manage driver packages
      */
-    override fun onClick() = driverCallback.launch(Intent(context, GpuDriverActivity::class.java))
+    override fun onClick() = driverCallback.launch(Intent(context, GpuDriverActivity::class.java).apply {
+        putExtra(AppItemTag, item)
+    })
 }

@@ -14,7 +14,7 @@ import androidx.preference.Preference
 import androidx.preference.R
 import com.google.android.material.snackbar.Snackbar
 import emu.skyline.R as SkylineR
-import emu.skyline.SettingsActivity
+import emu.skyline.settings.SettingsActivity
 import emu.skyline.provider.DocumentsProvider
 
 class DocumentsProviderPreference @JvmOverloads constructor(context : Context, attrs : AttributeSet? = null, defStyleAttr : Int = R.attr.preferenceStyle) : Preference(context, attrs, defStyleAttr) {
@@ -34,6 +34,6 @@ class DocumentsProviderPreference @JvmOverloads constructor(context : Context, a
     override fun onClick() {
         if (launchOpenIntent(Intent.ACTION_VIEW) or launchOpenIntent("android.provider.action.BROWSE"))
             return
-        Snackbar.make((context as SettingsActivity).binding.root, SkylineR.string.failed_open_directory, Snackbar.LENGTH_SHORT).show()
+        Snackbar.make((context as SettingsActivity).binding.root, SkylineR.string.open_data_directory_failed, Snackbar.LENGTH_SHORT).show()
     }
 }

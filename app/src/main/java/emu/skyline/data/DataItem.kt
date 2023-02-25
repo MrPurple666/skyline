@@ -6,10 +6,16 @@
 package emu.skyline.data
 
 import android.content.Context
+import emu.skyline.BuildConfig
 import emu.skyline.R
 import emu.skyline.loader.AppEntry
 import emu.skyline.loader.LoaderResult
 import java.io.Serializable
+
+/**
+ * The tag used to pass [AppItem]s between activities and fragments
+ */
+const val AppItemTag = BuildConfig.APPLICATION_ID + ".APP_ITEM"
 
 sealed class DataItem : Serializable
 
@@ -49,19 +55,26 @@ data class AppItem(private val meta : AppEntry) : DataItem() {
      */
     val uri get() = meta.uri
 
+    /**
+     * The format of the application
+     */
+    val format get() = meta.format
+
     val loaderResult get() = meta.loaderResult
 
-    fun loaderResultString(context : Context) = context.getString(when (meta.loaderResult) {
-        LoaderResult.Success -> R.string.metadata_missing
+    fun loaderResultString(context : Context) = context.getString(
+        when (meta.loaderResult) {
+            LoaderResult.Success -> R.string.metadata_missing
 
-        LoaderResult.ParsingError -> R.string.invalid_file
+            LoaderResult.ParsingError -> R.string.invalid_file
 
-        LoaderResult.MissingTitleKey -> R.string.missing_title_key
+            LoaderResult.MissingTitleKey -> R.string.missing_title_key
 
-        LoaderResult.MissingHeaderKey,
-        LoaderResult.MissingTitleKek,
-        LoaderResult.MissingKeyArea -> R.string.incomplete_prod_keys
-    })
+            LoaderResult.MissingHeaderKey,
+            LoaderResult.MissingTitleKek,
+            LoaderResult.MissingKeyArea -> R.string.incomplete_prod_keys
+        }
+    )
 
     /**
      * The name and author is used as the key

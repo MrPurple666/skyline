@@ -21,8 +21,10 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
 import emu.skyline.data.AppItem
+import emu.skyline.data.AppItemTag
 import emu.skyline.databinding.AppDialogBinding
 import emu.skyline.loader.LoaderResult
+import emu.skyline.settings.SettingsActivity
 
 /**
  * This dialog is used to show extra game metadata and provide extra options such as pinning the game to the home screen
@@ -34,7 +36,7 @@ class AppDialog : BottomSheetDialogFragment() {
          */
         fun newInstance(item : AppItem) : AppDialog {
             val args = Bundle()
-            args.putSerializable("item", item)
+            args.putSerializable(AppItemTag, item)
 
             val fragment = AppDialog()
             fragment.arguments = args
@@ -44,7 +46,7 @@ class AppDialog : BottomSheetDialogFragment() {
 
     private lateinit var binding : AppDialogBinding
 
-    private val item by lazy { requireArguments().getSerializable("item")!! as AppItem }
+    private val item by lazy { requireArguments().getSerializable(AppItemTag)!! as AppItem }
 
     /**
      * This inflates the layout of the dialog after initial view creation
@@ -72,7 +74,16 @@ class AppDialog : BottomSheetDialogFragment() {
 
         binding.gamePlay.isEnabled = item.loaderResult == LoaderResult.Success
         binding.gamePlay.setOnClickListener {
-            startActivity(Intent(activity, EmulationActivity::class.java).apply { data = item.uri })
+            startActivity(Intent(activity, EmulationActivity::class.java).apply {
+                putExtras(requireArguments())
+            })
+        }
+
+        binding.gameSettings.isEnabled = item.loaderResult == LoaderResult.Success
+        binding.gameSettings.setOnClickListener {
+            startActivity(Intent(activity, SettingsActivity::class.java).apply {
+                putExtras(requireArguments())
+            })
         }
 
         val shortcutManager = requireActivity().getSystemService(ShortcutManager::class.java)
