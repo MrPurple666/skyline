@@ -182,8 +182,8 @@ namespace skyline::soc::gm20b::engine::maxwell3d {
 
             Register<0x458, std::array<type::VertexAttribute, type::VertexAttributeCount>> vertexAttributes;
 
-            Register<0x484, u32> invalidateSamplerCacheAll;
-            Register<0x485, u32> invalidateTextureHeaderCacheAll;
+            Register<0x483, u32> invalidateSamplerCacheAll;
+            Register<0x484, u32> invalidateTextureHeaderCacheAll;
 
             struct DrawVertexArrayBeginEndInstance {
                 u16 startIndex;
@@ -197,6 +197,11 @@ namespace skyline::soc::gm20b::engine::maxwell3d {
             Register<0x487, type::CtSelect> ctSelect;
 
             Register<0x48A, type::ZtSize> ztSize;
+
+            struct DrawAuto {
+                u32 byteCount;
+            };
+            Register<0x48F, DrawAuto> drawAuto;
 
             Register<0x48D, type::SamplerBinding> samplerBinding; //!< If enabled, the TSC index in a bindless texture handle is ignored and the TIC index is used as the TSC index, otherwise the TSC index from the bindless texture handle is used
 

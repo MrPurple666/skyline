@@ -46,6 +46,7 @@ class PreferenceSettings @Inject constructor(@ApplicationContext private val con
     var executorFlushThreshold by sharedPreferences(context, 256)
     var useDirectMemoryImport by sharedPreferences(context, false)
     var forceMaxGpuClocks by sharedPreferences(context, false)
+    var freeGuestTextureMemory by sharedPreferences(context, true)
 
     // Hacks
     var enableFastGpuReadbackHack by sharedPreferences(context, false)
