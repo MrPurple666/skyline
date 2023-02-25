@@ -6,10 +6,17 @@
 package emu.skyline
 
 import android.annotation.SuppressLint
+import android.app.PendingIntent
+import android.app.PictureInPictureParams
+import android.app.RemoteAction
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.AssetManager
+import android.content.res.Configuration
 import android.graphics.PointF
+import android.graphics.drawable.Icon
 import android.hardware.display.DisplayManager
 import android.os.*
 import android.util.Log
@@ -24,6 +31,7 @@ import androidx.core.view.updateMargins
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import emu.skyline.BuildConfig
 import emu.skyline.applet.swkbd.SoftwareKeyboardConfig
 import emu.skyline.applet.swkbd.SoftwareKeyboardDialog
 import emu.skyline.databinding.EmuActivityBinding
@@ -67,12 +75,19 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     /**
      * If the activity should return to [MainActivity] or just call [finishAffinity]
      */
-    var returnToMain : Boolean = false
+    private var returnToMain : Boolean = false
 
     /**
      * The desired refresh rate to present at in Hz
      */
-    var desiredRefreshRate = 60f
+    private var desiredRefreshRate = 60f
+
+    private var isEmulatorPaused = false
+
+    private lateinit var pictureInPictureParamsBuilder : PictureInPictureParams.Builder
+    private val intentActionPause = "${BuildConfig.APPLICATION_ID}.ACTION_EMULATOR_PAUSE"
+    private val intentActionMute = "${BuildConfig.APPLICATION_ID}.ACTION_EMULATOR_MUTE"
+    private lateinit var pictureInPictureReceiver : BroadcastReceiver
 
     @Inject
     lateinit var preferenceSettings : PreferenceSettings
@@ -83,6 +98,8 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     lateinit var inputManager : InputManager
 
     lateinit var inputHandler : InputHandler
+
+    private var gameSurface : Surface? = null
 
     /**
      * This is the entry point into the emulation code for libskyline
@@ -158,6 +175,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     /**
      * Return from emulation to either [MainActivity] or the activity on the back stack
      */
+    @SuppressWarnings("WeakerAccess")
     fun returnFromEmulation() {
         if (shouldFinish) {
             runOnUiThread {
@@ -269,6 +287,8 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         force60HzRefreshRate(!preferenceSettings.maxRefreshRate)
         getSystemService<DisplayManager>()?.registerDisplayListener(this, null)
 
+        pictureInPictureParamsBuilder = getPictureInPictureBuilder()
+
         binding.gameView.setOnTouchListener(this)
 
         // Hide on screen controls when first controller is not set
@@ -286,7 +306,37 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
             setOnClickListener { binding.onScreenControllerView.isInvisible = !binding.onScreenControllerView.isInvisible }
         }
 
+        binding.onScreenPauseToggle.apply {
+            isGone = binding.onScreenControllerView.isGone
+            setOnClickListener {
+                if (isEmulatorPaused) {
+                    resumeEmulator()
+                    binding.onScreenPauseToggle.setImageResource(R.drawable.ic_pause)
+                } else {
+                    pauseEmulator()
+                    binding.onScreenPauseToggle.setImageResource(R.drawable.ic_play)
+                }
+            }
+        }
+
         executeApplication(intent!!)
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    fun pauseEmulator() {
+        if (isEmulatorPaused) return
+        setSurface(null)
+        changeAudioStatus(false)
+        isEmulatorPaused = true
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    fun resumeEmulator() {
+        if (!isEmulatorPaused) return
+        gameSurface?.let { setSurface(it) }
+        if (!preferenceSettings.isAudioOutputDisabled)
+            changeAudioStatus(true)
+        isEmulatorPaused = false
     }
 
     override fun onPause() {
@@ -295,7 +345,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         if (preferenceSettings.forceMaxGpuClocks)
             GpuDriverHelper.forceMaxGpuClocks(false)
 
-        changeAudioStatus(false)
+        pauseEmulator()
     }
 
     override fun onStart() {
@@ -311,7 +361,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     override fun onResume() {
         super.onResume()
 
-        changeAudioStatus(true)
+        resumeEmulator()
 
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
@@ -324,6 +374,79 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         }
     }
 
+    private fun getPictureInPictureBuilder() : PictureInPictureParams.Builder {
+        val pictureInPictureParamsBuilder = PictureInPictureParams.Builder()
+
+        val pictureInPictureActions : MutableList<RemoteAction> = mutableListOf()
+        val pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+
+        val pauseIcon = Icon.createWithResource(this, R.drawable.ic_pause)
+        val pausePendingIntent = PendingIntent.getBroadcast(this, R.drawable.ic_pause, Intent(intentActionPause), pendingFlags)
+        val pauseRemoteAction = RemoteAction(pauseIcon, getString(R.string.pause), getString(R.string.pause_emulator), pausePendingIntent)
+        pictureInPictureActions.add(pauseRemoteAction)
+
+        if (!preferenceSettings.isAudioOutputDisabled) {
+            val muteIcon = Icon.createWithResource(this, R.drawable.ic_volume_mute)
+            val mutePendingIntent = PendingIntent.getBroadcast(this, R.drawable.ic_volume_mute, Intent(intentActionMute), pendingFlags)
+            val muteRemoteAction = RemoteAction(muteIcon, getString(R.string.mute), getString(R.string.disable_audio_output), mutePendingIntent)
+            pictureInPictureActions.add(muteRemoteAction)
+        }
+
+        pictureInPictureParamsBuilder.setActions(pictureInPictureActions)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            pictureInPictureParamsBuilder.setAutoEnterEnabled(true)
+
+        setPictureInPictureParams(pictureInPictureParamsBuilder.build())
+
+        return pictureInPictureParamsBuilder
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        if (isInPictureInPictureMode) {
+            pictureInPictureReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context : Context?, intent : Intent) {
+                    if (intent.action == intentActionPause)
+                        pauseEmulator()
+                    else if (intent.action == intentActionMute)
+                        changeAudioStatus(false)
+                }
+            }
+
+            IntentFilter().apply {
+                addAction(intentActionPause)
+                if (!preferenceSettings.isAudioOutputDisabled)
+                    addAction(intentActionMute)
+            }.also {
+                registerReceiver(pictureInPictureReceiver, it)
+            }
+
+            binding.onScreenControllerView.isGone = true
+            binding.onScreenControllerToggle.isGone = true
+            binding.onScreenPauseToggle.isGone = true
+        } else {
+            try {
+                if (this::pictureInPictureReceiver.isInitialized)
+                    unregisterReceiver(pictureInPictureReceiver)
+            } catch (ignored : Exception) {
+                // Perfectly acceptable and should be ignored
+            }
+
+            resumeEmulator()
+            
+            binding.onScreenControllerView.apply {
+                controllerType = inputHandler.getFirstControllerType()
+                isGone = controllerType == ControllerType.None || !preferenceSettings.onScreenControl
+            }
+            binding.onScreenControllerToggle.apply {
+                isGone = binding.onScreenControllerView.isGone
+            }
+            binding.onScreenPauseToggle.apply {
+                isGone = binding.onScreenControllerView.isGone
+            }
+        }
+    }
+
     /**
      * Stop the currently executing ROM and replace it with the one specified in the new intent
      */
@@ -333,6 +456,11 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
             setIntent(intent)
             executeApplication(intent)
         }
+    }
+
+    override fun onUserLeaveHint() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && !isInPictureInPictureMode)
+            enterPictureInPictureMode(pictureInPictureParamsBuilder.build())
     }
 
     override fun onDestroy() {
@@ -358,8 +486,10 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
             holder.surface.setFrameRate(desiredRefreshRate, if (preferenceSettings.maxRefreshRate) Surface.FRAME_RATE_COMPATIBILITY_DEFAULT else Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE)
 
         while (emulationThread!!.isAlive)
-            if (setSurface(holder.surface))
+            if (setSurface(holder.surface)) {
+                gameSurface = holder.surface
                 return
+            }
     }
 
     /**
@@ -375,8 +505,10 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     override fun surfaceDestroyed(holder : SurfaceHolder) {
         Log.d(Tag, "surfaceDestroyed Holder: $holder")
         while (emulationThread!!.isAlive)
-            if (setSurface(null))
+            if (setSurface(null)) {
+                gameSurface = null
                 return
+            }
     }
 
     override fun dispatchKeyEvent(event : KeyEvent) : Boolean {
@@ -500,7 +632,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         return ((major shl 22) or (minor shl 12) or (patch)).toInt()
     }
 
-    val insetsOrMarginHandler = View.OnApplyWindowInsetsListener { view, insets ->
+    private val insetsOrMarginHandler = View.OnApplyWindowInsetsListener { view, insets ->
         insets.displayCutout?.let {
             val defaultHorizontalMargin = view.resources.getDimensionPixelSize(R.dimen.onScreenItemHorizontalMargin)
             val left = if (it.safeInsetLeft == 0) defaultHorizontalMargin else it.safeInsetLeft
