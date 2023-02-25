@@ -23,16 +23,21 @@ namespace skyline::soc::gm20b::engine {
         host1x::SyncpointSet &syncpoints;
         ChannelContext &channelCtx;
         gpu::interconnect::MaxwellDma interconnect;
+        std::vector<u8> copyCache;
 
         void HandleMethod(u32 method, u32 argument);
+
+        void DmaCopy();
+
+        void HandleCopy(TranslatedAddressRange srcMappings, TranslatedAddressRange dstMappings, size_t srcSize, size_t dstSize, auto copyCallback);
+
+        void CopyBlockLinearToPitch();
+
+        void CopyPitchToBlockLinear();
 
         void LaunchDma();
 
         void ReleaseSemaphore();
-
-        void CopyPitchToBlockLinear();
-
-        void CopyBlockLinearToPitch();
 
       public:
         /**
@@ -182,8 +187,6 @@ namespace skyline::soc::gm20b::engine {
                     NoWrite = 6
                 };
 
-                Address address;
-
                 Swizzle dstX : 3;
                 u8 _pad0_ : 1;
                 Swizzle dstY : 3;
@@ -212,7 +215,7 @@ namespace skyline::soc::gm20b::engine {
                     return numDstComponentsMinusOne + 1;
                 }
             };
-            static_assert(sizeof(RemapComponents) == 0xC);
+            static_assert(sizeof(RemapComponents) == 0x4);
 
             Register<0x1C2, RemapComponents> remapComponents;
 

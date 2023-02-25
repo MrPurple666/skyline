@@ -8,26 +8,18 @@
 #include "maxwell_dma.h"
 
 namespace skyline::gpu::interconnect {
-    using IOVA = soc::gm20b::IOVA;
-
     MaxwellDma::MaxwellDma(GPU &gpu, soc::gm20b::ChannelContext &channelCtx)
         : gpu{gpu},
           channelCtx{channelCtx},
           executor{channelCtx.executor} {}
 
-    void MaxwellDma::Copy(IOVA dst, IOVA src, size_t size) {
-        auto srcMappings{channelCtx.asCtx->gmmu.TranslateRange(src, size)};
-        auto dstMappings{channelCtx.asCtx->gmmu.TranslateRange(dst, size)};
-
-        if (srcMappings.size() > 1 || dstMappings.size() > 1)
-            Logger::Warn("Split mapping are unsupported for DMA copies");
-
-        auto srcBuf{gpu.buffer.FindOrCreate(srcMappings.front(), executor.tag, [this](std::shared_ptr<Buffer> buffer, ContextLock<Buffer> &&lock) {
+    void MaxwellDma::Copy(span<u8> dstMapping, span<u8> srcMapping) {
+        auto srcBuf{gpu.buffer.FindOrCreate(srcMapping, executor.tag, [this](std::shared_ptr<Buffer> buffer, ContextLock<Buffer> &&lock) {
             executor.AttachLockedBuffer(buffer, std::move(lock));
         })};
         ContextLock srcBufLock{executor.tag, srcBuf};
 
-        auto dstBuf{gpu.buffer.FindOrCreate(dstMappings.front(), executor.tag, [this](std::shared_ptr<Buffer> buffer, ContextLock<Buffer> &&lock) {
+        auto dstBuf{gpu.buffer.FindOrCreate(dstMapping, executor.tag, [this](std::shared_ptr<Buffer> buffer, ContextLock<Buffer> &&lock) {
             executor.AttachLockedBuffer(buffer, std::move(lock));
         })};
         ContextLock dstBufLock{executor.tag, dstBuf};
@@ -58,6 +50,34 @@ namespace skyline::gpu::interconnect {
                     .dstAccessMask = vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite,
                 }, {}, {});
             });
+        });
+    }
+
+    void MaxwellDma::Clear(span<u8> mapping, u32 value) {
+        if (!util::IsAligned(mapping.size(), 4))
+            throw exception("Cleared buffer's size is not aligned to 4 bytes!");
+
+        auto clearBuf{gpu.buffer.FindOrCreate(mapping, executor.tag, [this](std::shared_ptr<Buffer> buffer, ContextLock<Buffer> &&lock) {
+            executor.AttachLockedBuffer(buffer, std::move(lock));
+        })};
+        executor.AttachBuffer(clearBuf);
+
+        clearBuf.GetBuffer()->BlockSequencedCpuBackingWrites();
+        clearBuf.GetBuffer()->MarkGpuDirty();
+
+        executor.AddOutsideRpCommand([clearBuf, value](vk::raii::CommandBuffer &commandBuffer, const std::shared_ptr<FenceCycle> &, GPU &gpu) {
+            commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eTransfer, {}, vk::MemoryBarrier{
+                .srcAccessMask = vk::AccessFlagBits::eMemoryRead,
+                .dstAccessMask = vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite
+            }, {}, {});
+
+            auto clearBufBinding{clearBuf.GetBinding(gpu)};
+            commandBuffer.fillBuffer(clearBufBinding.buffer, clearBufBinding.offset, clearBufBinding.size, value);
+
+            commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllCommands, {}, vk::MemoryBarrier{
+                .srcAccessMask = vk::AccessFlagBits::eTransferWrite,
+                .dstAccessMask = vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite,
+            }, {}, {});
         });
     }
 }
