@@ -32,6 +32,10 @@
             app:key="system_region"
             app:title="@string/system_region"
             app:useSimpleSummaryProvider="true" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            app:key="internet_enabled"
+            app:title="Enable Internet" />
     </PreferenceCategory>
     <PreferenceCategory
         android:key="category_presentation"
@@ -99,7 +103,7 @@
             app:title="@string/disable_frame_throttling" />
         <SeekBarPreference
             android:defaultValue="4"
-            android:max="6"
+            android:max="12"
             android:min="1"
             android:summary="@string/executor_slot_count_scale_desc"
             app:key="executor_slot_count_scale"
@@ -107,7 +111,7 @@
             app:title="@string/executor_slot_count_scale" />
         <SeekBarPreference
             android:defaultValue="256"
-            android:max="1024"
+            android:max="2048"
             android:min="0"
             android:summary="@string/executor_flush_threshold_desc"
             app:key="executor_flush_threshold"
