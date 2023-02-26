@@ -11,13 +11,13 @@ enum class SwitchColors(val color : Int) {
     GRAY(Color.GRAY),
     BLACK(Color.rgb(0, 0, 0)),
     WHITE(Color.rgb(255, 255, 255)),
-    NEON_YELLOW(Color.rgb(230, 255, 0)),
-    NEON_PURPLE(Color.rgb(180, 0, 230)),
-    NEON_RED(Color.rgb(255, 60, 40)),
-    MARIO_RED(Color.rgb(225, 15, 0)),
-    NEON_BLUE(Color.rgb(10, 185, 230)),
-    BLUE(Color.rgb(70, 85, 245)),
-    NEON_GREEN(Color.rgb(30, 220, 0));
+    C1(Color.argb(255,105,180)),
+    C2(Color.argb(128, 112, 203)),
+    C3(Color.argb(252, 236, 82)),
+    C4(Color.argb(93, 46, 140)),
+    C5(Color.argb(46, 196, 182)),
+    C6(Color.argb(0, 117, 162)),
+    C7(Color.argb(235, 50, 95));
 
     companion object {
         val colors get() = SwitchColors.values().map { clr -> clr.color }
