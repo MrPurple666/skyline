@@ -102,8 +102,6 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
     lateinit var emulationSettings : EmulationSettings
 
-    lateinit var nativeSettings : NativeSettings
-
     @Inject
     lateinit var inputManager : InputManager
 
@@ -226,7 +224,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
         GpuDriverHelper.ensureFileRedirectDir(this)
         emulationThread = Thread {
-            executeApplication(rom.toString(), romType, romFd.detachFd(), nativeSettings, applicationContext.getPublicFilesDir().canonicalPath + "/", applicationContext.filesDir.canonicalPath + "/", applicationInfo.nativeLibraryDir + "/", assets)
+            executeApplication(rom.toString(), romType, romFd.detachFd(), NativeSettings(this, preferenceSettings), applicationContext.getPublicFilesDir().canonicalPath + "/", applicationContext.filesDir.canonicalPath + "/", applicationInfo.nativeLibraryDir + "/", assets)
             returnFromEmulation()
         }
 
@@ -259,8 +257,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
         requestedOrientation = emulationSettings.orientation
         window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        inputHandler = InputHandler(inputManager, emulationSettings)
-        nativeSettings = NativeSettings(this, emulationSettings)
+        inputHandler = InputHandler(inputManager, preferenceSettings)
         setContentView(binding.root)
 
         if (emulationSettings.respectDisplayCutout) {
@@ -290,15 +287,6 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
                         postDelayed(this, 250)
                     }
                 }, 250)
-                setOnClickListener {
-                    val newValue = !emulationSettings.disableFrameThrottling
-                    emulationSettings.disableFrameThrottling = newValue
-                    nativeSettings.disableFrameThrottling = newValue
-
-                    val color = if (newValue) getColor(R.color.colorPerfStatsSecondary) else getColor(R.color.colorPerfStatsPrimary)
-                    binding.perfStats.setTextColor(color)
-                    nativeSettings.updateNative()
-                }
             }
         }
 
