@@ -3,14 +3,6 @@
     <PreferenceCategory
         android:key="category_system"
         android:title="@string/system">
-        <emu.skyline.preference.ProfilePicturePreference
-            app:key="profile_picture_value"
-            app:title="@string/profile_picture" />
-        <emu.skyline.preference.CustomEditTextPreference
-            android:defaultValue="@string/username_default"
-            app:key="username_value"
-            app:limit="31"
-            app:title="@string/username" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:summaryOff="@string/handheld_enabled"
@@ -36,6 +28,18 @@
             android:defaultValue="false"
             app:key="internet_enabled"
             app:title="Enable Internet" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="category_user"
+        android:title="@string/user">
+        <emu.skyline.preference.ProfilePicturePreference
+            app:key="profile_picture_value"
+            app:title="@string/profile_picture" />
+        <emu.skyline.preference.CustomEditTextPreference
+            android:defaultValue="@string/username_default"
+            app:key="username_value"
+            app:limit="31"
+            app:title="@string/username" />
     </PreferenceCategory>
     <PreferenceCategory
         android:key="category_presentation"
