@@ -32,8 +32,8 @@
     <string name="open_data_directory_summary">Opens Skyline\'s internal directory in a file manager</string>
     <string name="failed_open_directory">Cannot find an external file manager to open Skyline\'s internal directory</string>
     <string name="search_location">Search Location</string>
-    <string name="app_language">App Language</string>
-    <string name="app_language_default">Use System Default</string>
+
+
     <!-- Settings - Keys -->
     <string name="keys">Keys</string>
     <string name="prod_keys">Production Keys</string>
