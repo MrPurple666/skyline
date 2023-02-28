@@ -91,6 +91,7 @@
         <item>8</item>
     </integer-array>
     <string-array name="credits_entries">
+	<item>Jonas Angel</item>
         <item>xnoro</item>
         <item>Zpsico</item>
         <item>Barroslukas1</item>
