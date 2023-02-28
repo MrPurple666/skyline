@@ -23,6 +23,9 @@
     <string name="invalid_file">Invalid file</string>
     <string name="missing_title_key">Missing title key</string>
     <string name="incomplete_prod_keys">Incomplete production keys</string>
+    <!-- Picture-In-Picture -->
+    <string name="pause">Pause</string>
+    <string name="mute">Mute</string>
     <!-- Settings - Content -->
     <string name="content">Content</string>
     <string name="open_data_directory">View Internal Directory</string>
