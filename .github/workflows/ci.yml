@@ -2,8 +2,8 @@ name: CI
 
 on:
   push:
-  pull_request:
-    types: [opened, synchronize, reopened, labeled]
+    branches: [ purple-t1 ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -64,44 +64,28 @@ jobs:
           CMAKE_C_COMPILER_LAUNCHER: "ccache"
           CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
           CCACHE_COMPILERCHECK: "string:${{ env.NDK_VERSION }}"
-        run: ./gradlew --stacktrace --configuration-cache --build-cache --parallel --configure-on-demand assembleFullRelease assembleFullReldebug
+        run: ./gradlew --stacktrace --configuration-cache --build-cache --parallel --configure-on-demand assembleFullRelease
 
       - name: Rename APKs (Signed)
         if: env.IS_SKYLINE_SIGNED == 'true' && env.UPLOAD_ARTIFACTS == 'true'
         run: |
-          mv app/build/outputs/apk/full/reldebug/app-full-reldebug.apk skyline-$GITHUB_RUN_NUMBER-reldebug.apk
-          mv app/build/outputs/apk/full/release/app-full-release.apk skyline-$GITHUB_RUN_NUMBER-release.apk
-
-      - name: Upload Signed Debug APK
-        if: env.IS_SKYLINE_SIGNED == 'true' && env.UPLOAD_ARTIFACTS == 'true'
-        uses: actions/upload-artifact@v3
-        with:
-          name: skyline-${{ github.run_number }}-reldebug.apk
-          path: skyline-${{ github.run_number }}-reldebug.apk
+          mv app/build/outputs/apk/full/release/app-full-release.apk skyline-$GITHUB_RUN_NUMBER-release_MrPurple.apk
 
       - name: Upload Signed Release APK
         if: env.IS_SKYLINE_SIGNED == 'true' && env.UPLOAD_ARTIFACTS == 'true'
         uses: actions/upload-artifact@v3
         with:
-          name: skyline-${{ github.run_number }}-release.apk
-          path: skyline-${{ github.run_number }}-release.apk
+          name: skyline-${{ github.run_number }}-release_MrPurple.apk
+          path: skyline-${{ github.run_number }}-release_MrPurple.apk
 
       - name: Rename APKs (Unsigned)
         if: env.IS_SKYLINE_SIGNED == 'false' && env.UPLOAD_ARTIFACTS == 'true'
         run: |
-          mv app/build/outputs/apk/full/reldebug/app-full-reldebug.apk skyline-$GITHUB_RUN_NUMBER-unsigned-reldebug.apk
-          mv app/build/outputs/apk/full/release/app-full-release.apk skyline-$GITHUB_RUN_NUMBER-unsigned-release.apk
-
-      - name: Upload Unsigned Debug APK
-        if: env.IS_SKYLINE_SIGNED == 'false' && env.UPLOAD_ARTIFACTS == 'true'
-        uses: actions/upload-artifact@v3
-        with:
-          name: skyline-${{ github.run_number }}-unsigned-reldebug.apk
-          path: skyline-${{ github.run_number }}-unsigned-reldebug.apk
+          mv app/build/outputs/apk/full/release/app-full-release.apk skyline-$GITHUB_RUN_NUMBER-unsigned-release_MrPurple.apk
 
       - name: Upload Unsigned Release APK
         if: env.IS_SKYLINE_SIGNED == 'false' && env.UPLOAD_ARTIFACTS == 'true'
         uses: actions/upload-artifact@v3
         with:
-          name: skyline-${{ github.run_number }}-unsigned-release.apk
-          path: skyline-${{ github.run_number }}-unsigned-release.apk
+          name: skyline-${{ github.run_number }}-unsigned-release_MrPurple.apk
+          path: skyline-${{ github.run_number }}-unsigned-release_MrPurple.apk
