@@ -3,20 +3,20 @@
     <PreferenceCategory
         android:key="category_system"
         android:title="@string/system">
+        <emu.skyline.preference.ProfilePicturePreference
+            app:key="profile_picture_value"
+            app:title="@string/profile_picture" />
+        <emu.skyline.preference.CustomEditTextPreference
+            android:defaultValue="@string/username_default"
+            app:key="username_value"
+            app:limit="31"
+            app:title="@string/username" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:summaryOff="@string/handheld_enabled"
             android:summaryOn="@string/docked_enabled"
             app:key="is_docked"
             app:title="@string/use_docked" />
-        <emu.skyline.preference.CustomEditTextPreference
-            android:defaultValue="@string/username_default"
-            app:key="username_value"
-            app:limit="31"
-            app:title="@string/username" />
-        <emu.skyline.preference.ProfilePicturePreference
-            app:key="profile_picture_value"
-            app:title="@string/profile_picture" />
         <emu.skyline.preference.IntegerListPreference
             android:defaultValue="1"
             android:entries="@array/system_languages"
