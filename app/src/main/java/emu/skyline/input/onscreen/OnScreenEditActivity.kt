@@ -16,7 +16,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import emu.skyline.R
 import emu.skyline.databinding.OnScreenEditActivityBinding
 import emu.skyline.settings.AppSettings
-import petrov.kristiyan.colorpicker.ColorPicker
 import emu.skyline.utils.SwitchColors
 import emu.skyline.utils.SwitchColors.*
 import petrov.kristiyan.colorpicker.DoubleColorPicker
@@ -103,6 +102,7 @@ class OnScreenEditActivity : AppCompatActivity() {
     }
 
     private val actions : List<Pair<Int, () -> Unit>> = listOf(
+        Pair(R.drawable.ic_palette, paletteAction),
         Pair(R.drawable.ic_restore) { binding.onScreenControllerView.resetControls() },
         Pair(R.drawable.ic_toggle, toggleAction),
         Pair(R.drawable.ic_edit, editAction),
@@ -133,7 +133,6 @@ class OnScreenEditActivity : AppCompatActivity() {
 
         binding.onScreenControllerView.recenterSticks = appSettings.onScreenControlRecenterSticks
 
-        createPaletteAction()
         actions.forEach { pair ->
             binding.fabParent.addView(LayoutInflater.from(this).inflate(R.layout.on_screen_edit_mini_fab, binding.fabParent, false).apply {
                 (this as FloatingActionButton).setImageDrawable(ContextCompat.getDrawable(context, pair.first))
@@ -141,52 +140,6 @@ class OnScreenEditActivity : AppCompatActivity() {
                 fabMapping[pair.first] = this
             })
         }
-    }
-
-    private fun createPaletteAction() {
-        binding.fabParent.addView(LayoutInflater.from(this).inflate(R.layout.on_screen_edit_mini_fab, binding.fabParent, false).apply {
-            (this as FloatingActionButton).setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_palette))
-            this.setOnCreateContextMenuListener { menu, _, _ ->
-                val textColorButton : MenuItem = menu.add(getString(R.string.osc_text_color))
-                textColorButton.setOnMenuItemClickListener {
-                    ColorPicker(this@OnScreenEditActivity).apply {
-                        setTitle(this@OnScreenEditActivity.getString(R.string.osc_text_color))
-                        setRoundColorButton(true)
-                        setColors(Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
-                        setDefaultColorButton(binding.onScreenControllerView.getTextColor())
-                        setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
-                            override fun onChooseColor(position : Int, color : Int) {
-                                binding.onScreenControllerView.setTextColor(color)
-                            }
-
-                            override fun onCancel() {/*Nothing to do*/
-                            }
-                        })
-                    }.show()
-                    true
-                }
-                val backgroundColorButton : MenuItem = menu.add(getString(R.string.osc_background_color))
-                backgroundColorButton.setOnMenuItemClickListener {
-                    ColorPicker(this@OnScreenEditActivity).apply {
-                        setTitle(this@OnScreenEditActivity.getString(R.string.osc_background_color))
-                        setRoundColorButton(true)
-                        setColors(Color.TRANSPARENT, Color.GRAY, Color.argb(180, 0, 0, 0), Color.argb(180, 255, 255, 255), Color.argb(180, 255, 60, 40), Color.argb(180, 225, 15, 0), Color.argb(180, 10, 185, 230), Color.argb(180, 70, 85, 245), Color.argb(180, 30, 220, 0))
-                        setDefaultColorButton(binding.onScreenControllerView.getBGColor())
-                        setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
-                            override fun onChooseColor(position : Int, color : Int) {
-                                binding.onScreenControllerView.setBGColor(color)
-                            }
-
-                            override fun onCancel() {/*Nothing to do*/
-                            }
-                        })
-                    }.show()
-                    true
-                }
-            }
-            this.setOnClickListener { this.showContextMenu(this.x, this.y + this.height) }
-            fabMapping[R.drawable.ic_palette] = this
-        })
     }
 
     override fun onResume() {
