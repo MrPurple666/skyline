@@ -237,7 +237,7 @@ namespace skyline::gpu {
          * @note This **must** be called after syncing the buffer to the GPU not before
          * @note The buffer **must** be locked prior to calling this
          */
-        void MarkGpuDirty(UsageTracker &usageTracker);
+        void MarkGpuDirty();
 
         /**
          * @brief Prevents sequenced writes to this buffer's backing from occuring on the CPU, forcing sequencing on the GPU instead for the duration of the context. Unsequenced writes such as those from the guest can still occur however.
