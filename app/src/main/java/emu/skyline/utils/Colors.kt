@@ -9,8 +9,8 @@ import android.graphics.Color
 
 enum class SwitchColors(val color : Int) {
     GRAY(Color.GRAY),
-    BLACK(Color.rgb(180, 0, 0, 0)),
-    WHITE(Color.rgb(180, 255, 255, 255)),
+    BLACK(Color.rgb(0, 0, 0)),
+    WHITE(Color.rgb(255, 255, 255)),
     C1(Color.argb(180, 255,105,180)),
     C2(Color.argb(180, 128, 112, 203)),
     C3(Color.argb(180, 252, 236, 82)),
