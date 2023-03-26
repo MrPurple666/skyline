@@ -58,14 +58,14 @@
     <color name="md_theme_dark_errorContainer">#93000A</color>
     <color name="md_theme_dark_onError">#690005</color>
     <color name="md_theme_dark_onErrorContainer">#FFDAD6</color>
-    <color name="md_theme_dark_background">#FF272528</color>
+    <color name="md_theme_dark_background">#FF000000</color>
     <color name="md_theme_dark_onBackground">#E3E2E6</color>
-    <color name="md_theme_dark_surface">#FF272528</color>
+    <color name="md_theme_dark_surface">#FF000000</color>
     <color name="md_theme_dark_onSurface">#E3E2E6</color>
     <color name="md_theme_dark_surfaceVariant">#44474F</color>
     <color name="md_theme_dark_onSurfaceVariant">#C4C6D0</color>
     <color name="md_theme_dark_outline">#8E9099</color>
-    <color name="md_theme_dark_inverseOnSurface">#FF272528</color>
+    <color name="md_theme_dark_inverseOnSurface">#FF000000</color>
     <color name="md_theme_dark_inverseSurface">#E3E2E6</color>
     <color name="md_theme_dark_inversePrimary">#FF58007F</color>
     <color name="md_theme_dark_shadow">#000000</color>
