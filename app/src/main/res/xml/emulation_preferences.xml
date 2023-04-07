@@ -32,7 +32,7 @@
             app:key="system_region"
             app:title="@string/system_region"
             app:useSimpleSummaryProvider="true" />
-        <CheckBoxPreference
+        <SwitchPreferenceCompat
             android:defaultValue="false"
             app:key="internet_enabled"
             app:title="Enable Internet" />
