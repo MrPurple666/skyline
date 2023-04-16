@@ -1,17 +1,25 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2021 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#include <vector>
+#include <stdexcept>
+#include <frozen/string.h>
 #include <adrenotools/bcenabler.h>
+#include "logging.h"
 #include "trait_manager.h"
 
-namespace skyline::gpu {
+static constexpr std::size_t Hash(std::string_view view) {
+    return frozen::elsa<frozen::string>{}(frozen::string(view.data(), view.size()), 0);
+}
+
+namespace nnvk::vkcore {
     TraitManager::TraitManager(const DeviceFeatures2 &deviceFeatures2, DeviceFeatures2 &enabledFeatures2, const std::vector<vk::ExtensionProperties> &deviceExtensions, std::vector<std::array<char, VK_MAX_EXTENSION_NAME_SIZE>> &enabledExtensions, const DeviceProperties2 &deviceProperties2, const vk::raii::PhysicalDevice &physicalDevice) : quirks(deviceProperties2.get<vk::PhysicalDeviceProperties2>().properties, deviceProperties2.get<vk::PhysicalDeviceDriverProperties>()) {
-        bool hasCustomBorderColorExt{}, hasShaderAtomicInt64Ext{}, hasShaderFloat16Int8Ext{}, hasShaderDemoteToHelperExt{}, hasVertexAttributeDivisorExt{}, hasProvokingVertexExt{}, hasPrimitiveTopologyListRestartExt{}, hasImagelessFramebuffersExt{}, hasTransformFeedbackExt{}, hasUint8IndicesExt{}, hasExtendedDynamicStateExt{}, hasRobustness2Ext{};
+        bool hasCustomBorderColorExt{}, hasShaderAtomicInt64Ext{}, hasShaderFloat16Int8Ext{}, hasShaderDemoteToHelperExt{}, hasVertexAttributeDivisorExt{}, hasProvokingVertexExt{}, hasPrimitiveTopologyListRestartExt{}, hasImagelessFramebuffersExt{}, hasTransformFeedbackExt{}, hasUint8IndicesExt{}, hasExtendedDynamicStateExt{}, hasRobustness2Ext{}, hasBufferDeviceAddressExt{};
         bool supportsUniformBufferStandardLayout{}; // We require VK_KHR_uniform_buffer_standard_layout but assume it is implicitly supported even when not present
 
         for (auto &extension : deviceExtensions) {
             #define EXT_SET_COND(name, property, cond)                                                       \
-            case util::Hash(name):                                                                           \
+            case Hash(name):                                                                           \
                 if (cond) {                                                                                  \
                     if (name == extensionName) {                                                             \
                             property = true;                                                                 \
@@ -21,7 +29,7 @@ namespace skyline::gpu {
                 break
 
             #define EXT_SET(name, property)                                                          \
-            case util::Hash(name):                                                                   \
+            case Hash(name):                                                                   \
                 if (name == extensionName) {                                                         \
                     property = true;                                                                 \
                     enabledExtensions.push_back(std::array<char, VK_MAX_EXTENSION_NAME_SIZE>{name}); \
@@ -29,7 +37,7 @@ namespace skyline::gpu {
                 break
 
             #define EXT_SET_V(name, property, version)                                               \
-            case util::Hash(name):                                                                   \
+            case Hash(name):                                                                   \
                 if (name == extensionName && extensionVersion >= version) {                          \
                     property = true;                                                                 \
                     enabledExtensions.push_back(std::array<char, VK_MAX_EXTENSION_NAME_SIZE>{name}); \
@@ -38,7 +46,7 @@ namespace skyline::gpu {
 
             std::string_view extensionName{extension.extensionName};
             auto extensionVersion{extension.specVersion};
-            switch (util::Hash(extensionName)) {
+            switch (Hash(extensionName)) {
                 EXT_SET("VK_EXT_index_type_uint8", hasUint8IndicesExt);
                 EXT_SET("VK_EXT_sampler_mirror_clamp_to_edge", supportsSamplerMirrorClampToEdge);
                 EXT_SET("VK_EXT_sampler_filter_minmax", supportsSamplerReductionMode);
@@ -48,18 +56,17 @@ namespace skyline::gpu {
                 EXT_SET_COND("VK_KHR_push_descriptor", supportsPushDescriptors, !quirks.brokenPushDescriptors);
                 EXT_SET("VK_KHR_image_format_list", supportsImageFormatList);
                 EXT_SET_COND("VK_KHR_imageless_framebuffer", hasImagelessFramebuffersExt, supportsImageFormatList);
-                EXT_SET("VK_EXT_global_priority", supportsGlobalPriority);
                 EXT_SET("VK_EXT_shader_viewport_index_layer", supportsShaderViewportIndexLayer);
                 EXT_SET("VK_KHR_spirv_1_4", supportsSpirv14);
                 EXT_SET("VK_EXT_shader_demote_to_helper_invocation", hasShaderDemoteToHelperExt);
                 EXT_SET("VK_KHR_shader_atomic_int64", hasShaderAtomicInt64Ext);
                 EXT_SET("VK_KHR_shader_float16_int8", hasShaderFloat16Int8Ext);
-                EXT_SET("VK_KHR_shader_float_controls", supportsFloatControls);
                 EXT_SET("VK_KHR_uniform_buffer_standard_layout", supportsUniformBufferStandardLayout);
                 EXT_SET("VK_EXT_primitive_topology_list_restart", hasPrimitiveTopologyListRestartExt);
                 EXT_SET("VK_EXT_transform_feedback", hasTransformFeedbackExt);
                 EXT_SET_COND("VK_EXT_extended_dynamic_state", hasExtendedDynamicStateExt, !quirks.brokenDynamicStateVertexBindings);
                 EXT_SET("VK_EXT_robustness2", hasRobustness2Ext);
+                EXT_SET("VK_KHR_buffer_device_address", hasBufferDeviceAddressExt);
             }
 
             #undef EXT_SET_COND
@@ -173,6 +180,12 @@ namespace skyline::gpu {
             enabledFeatures2.unlink<vk::PhysicalDeviceTransformFeedbackFeaturesEXT>();
         }
 
+        if (hasBufferDeviceAddressExt) {
+            FEAT_SET(vk::PhysicalDeviceBufferDeviceAddressFeaturesKHR, bufferDeviceAddress, std::ignore)
+        } else {
+            throw std::runtime_error("VK_KHR_buffer_device_address is required!");
+        }
+
         FEAT_SET(vk::PhysicalDeviceFeatures2, features.geometryShader, supportsGeometryShaders)
         FEAT_SET(vk::PhysicalDeviceFeatures2, features.vertexPipelineStoresAndAtomics, supportsVertexPipelineStoresAndAtomics)
         FEAT_SET(vk::PhysicalDeviceFeatures2, features.fragmentStoresAndAtomics, supportsFragmentStoresAndAtomics)
@@ -181,9 +194,6 @@ namespace skyline::gpu {
         FEAT_SET(vk::PhysicalDeviceFeatures2, features.depthClamp, supportsDepthClamp)
 
         #undef FEAT_SET
-
-        if (supportsFloatControls)
-            floatControls = deviceProperties2.get<vk::PhysicalDeviceFloatControlsProperties>();
 
         auto &subgroupProperties{deviceProperties2.get<vk::PhysicalDeviceSubgroupProperties>()};
         supportsSubgroupVote = static_cast<bool>(subgroupProperties.supportedOperations & vk::SubgroupFeatureFlagBits::eVote);
@@ -220,27 +230,14 @@ namespace skyline::gpu {
         pipelineCacheUuid = deviceProperties2.get().properties.pipelineCacheUUID;
     }
 
-    std::string TraitManager::Summary() {
-        return fmt::format(
-            "\n* Supports U8 Indices: {}\n* Supports Sampler Mirror Clamp To Edge: {}\n* Supports Sampler Reduction Mode: {}\n* Supports Custom Border Color (Without Format): {}\n* Supports Anisotropic Filtering: {}\n* Supports Last Provoking Vertex: {}\n* Supports Logical Operations: {}\n* Supports Vertex Attribute Divisor: {}\n* Supports Vertex Attribute Zero Divisor: {}\n* Supports Push Descriptors: {}\n* Supports Imageless Framebuffers: {}\n* Supports Global Priority: {}\n* Supports Multiple Viewports: {}\n* Supports Shader Viewport Index: {}\n* Supports SPIR-V 1.4: {}\n* Supports Shader Invocation Demotion: {}\n* Supports 16-bit FP: {}\n* Supports 8-bit Integers: {}\n* Supports 16-bit Integers: {}\n* Supports 64-bit Integers: {}\n* Supports Atomic 64-bit Integers: {}\n* Supports Floating Point Behavior Control: {}\n* Supports Image Read Without Format: {}\n* Supports List Primitive Topology Restart: {}\n* Supports Patch List Primitive Topology Restart: {}\n* Supports Transform Feedback: {}\n* Supports Geometry Shaders: {}\n*  Supports Vertex Pipeline Stores and Atomics: {}\n* Supports Fragment Stores and Atomics: {}\n* Supports Shader Storage Image Write Without Format: {}\n*Supports Subgroup Vote: {}\n* Subgroup Size: {}\n* BCn Support: {}",
-            supportsUint8Indices, supportsSamplerMirrorClampToEdge, supportsSamplerReductionMode, supportsCustomBorderColor, supportsAnisotropicFiltering, supportsLastProvokingVertex, supportsLogicOp, supportsVertexAttributeDivisor, supportsVertexAttributeZeroDivisor, supportsPushDescriptors, supportsImagelessFramebuffers, supportsGlobalPriority, supportsMultipleViewports, supportsShaderViewportIndexLayer, supportsSpirv14, supportsShaderDemoteToHelper, supportsFloat16, supportsInt8, supportsInt16, supportsInt64, supportsAtomicInt64, supportsFloatControls, supportsImageReadWithoutFormat, supportsTopologyListRestart, supportsTopologyPatchListRestart, supportsTransformFeedback, supportsGeometryShaders, supportsVertexPipelineStoresAndAtomics, supportsFragmentStoresAndAtomics, supportsShaderStorageImageWriteWithoutFormat, supportsSubgroupVote, subgroupSize, bcnSupport.to_string()
-        );
-    }
-
     TraitManager::QuirkManager::QuirkManager(const vk::PhysicalDeviceProperties &deviceProperties, const vk::PhysicalDeviceDriverProperties &driverProperties) {
         switch (driverProperties.driverID) {
             case vk::DriverId::eQualcommProprietary: {
-                needsIndividualTextureBindingWrites = true;
-                vkImageMutableFormatCostly = true; // Disables UBWC
                 adrenoRelaxedFormatAliasing = true;
                 adrenoBrokenFormatReport = true;
-                relaxedRenderPassCompatibility = true; // Adreno drivers support relaxed render pass compatibility rules
                 brokenPushDescriptors = true;
                 brokenSpirvPositionInput = true;
                 brokenSpirvAccessChainOpt = true;
-
-                if (deviceProperties.driverVersion < VK_MAKE_VERSION(512, 600, 0))
-                    maxSubpassCount = 64; // Driver will segfault while destroying the renderpass and associated objects if this is exceeded on all 5xx and below drivers
 
                 if (deviceProperties.driverVersion >= VK_MAKE_VERSION(512, 615, 0) && deviceProperties.driverVersion <= VK_MAKE_VERSION(512, 615, 512))
                     brokenMultithreadedPipelineCompilation = true;
@@ -250,12 +247,10 @@ namespace skyline::gpu {
 
                 brokenSubgroupShuffle = true;
                 brokenSpirvVectorAccessChain = true;
-                maxGlobalPriority = vk::QueueGlobalPriorityEXT::eHigh;
                 break;
             }
 
             case vk::DriverId::eMesaTurnip: {
-                vkImageMutableFormatCostly = true; // Disables UBWC and forces linear tiling
                 adrenoRelaxedFormatAliasing = true;
                 break;
             }
@@ -265,31 +260,12 @@ namespace skyline::gpu {
                     brokenDynamicStateVertexBindings = true;
 
                 brokenSpirvAccessChainOpt = true;
-                vkImageMutableFormatCostly = true; // Disables AFBC in some cases
-                maxGlobalPriority = vk::QueueGlobalPriorityEXT::eHigh;
-                break;
-            }
-
-            case vk::DriverId::eNvidiaProprietary: {
-                relaxedRenderPassCompatibility = true;
-                break;
-            }
-
-            case vk::DriverId::eAmdProprietary: {
-                maxGlobalPriority = vk::QueueGlobalPriorityEXT::eHigh;
                 break;
             }
 
             default:
                 break;
         }
-    }
-
-    std::string TraitManager::QuirkManager::Summary() {
-        return fmt::format(
-            "\n* Needs Individual Texture Binding Writes: {}\n* VkImage Mutable Format is costly: {}\n* Adreno Relaxed Format Aliasing: {}\n* Adreno Broken Format Reporting: {}\n* Relaxed Render Pass Compatibility: {}\n* Max Subpass Count: {}\n* Max Global Queue Priority: {}",
-            needsIndividualTextureBindingWrites, vkImageMutableFormatCostly, adrenoRelaxedFormatAliasing, adrenoBrokenFormatReport, relaxedRenderPassCompatibility, maxSubpassCount, vk::to_string(maxGlobalPriority)
-        );
     }
 
     void TraitManager::ApplyDriverPatches(const vk::raii::Context &context, void *adrenotoolsImportHandle) {
@@ -311,7 +287,7 @@ namespace skyline::gpu {
             if (adrenotools_patch_bcn(reinterpret_cast<void *>(physicalDevice.getDispatcher()->vkGetPhysicalDeviceFormatProperties)))
                 Logger::Info("Applied BCeNabler patch");
             else
-                throw exception("Failed to apply BCeNabler patch!");
+                throw std::runtime_error("Failed to apply BCeNabler patch!");
             bcnSupport.set();
         } else if (type == ADRENOTOOLS_BCN_BLOB) {
             Logger::Info("BCeNabler skipped, blob BCN support is present");

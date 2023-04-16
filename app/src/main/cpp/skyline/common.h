@@ -22,6 +22,10 @@
 #include <common/result.h>
 #include <common/logger.h>
 
+namespace nnvk {
+    class Context;
+}
+
 namespace skyline {
     class Settings;
     namespace nce {
@@ -74,5 +78,6 @@ namespace skyline {
         std::shared_ptr<audio::Audio> audio;
         std::shared_ptr<kernel::Scheduler> scheduler;
         std::shared_ptr<input::Input> input;
+        std::unique_ptr<nnvk::Context> nnvkContext;
     };
 }

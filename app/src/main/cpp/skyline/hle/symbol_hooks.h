@@ -26,4 +26,10 @@ namespace skyline::hle {
 
         HookedSymbol(std::string name, HookType hook);
     };
+
+    namespace hooks {
+        void NvnBootstrapLoaderEntry(const DeviceState &state, const HookedSymbol &symbol);
+
+        void NvnBootstrapLoaderExit(const DeviceState &state, const HookedSymbol &symbol);
+    }
 }

@@ -13,5 +13,7 @@ namespace skyline::hle {
         HookTableEntry(std::string_view name, HookType hook) : name{name}, hook{std::move(hook)} {}
     };
 
-    static std::array<HookTableEntry, 0> HookedSymbols{};
+    static std::array<HookTableEntry, 1> HookedSymbols{
+        HookTableEntry{"nvnBootstrapLoader", EntryExitHook{hooks::NvnBootstrapLoaderEntry, hooks::NvnBootstrapLoaderExit}},
+    };
 }

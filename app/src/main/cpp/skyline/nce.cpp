@@ -9,6 +9,7 @@
 #include "jvm.h"
 #include "kernel/types/KProcess.h"
 #include "kernel/svc.h"
+#include "hle/nvn.h"
 #include "nce/guest.h"
 #include "nce/instructions.h"
 #include "nce.h"
@@ -249,6 +250,7 @@ namespace skyline::nce {
 
     NCE::NCE(const DeviceState &state) : state(state) {
         signal::SetTlsRestorer(&NceTlsRestorer);
+        hle::SetNvnHleTlsRestorer(&NceTlsRestorer);
         staticNce = this;
     }
 

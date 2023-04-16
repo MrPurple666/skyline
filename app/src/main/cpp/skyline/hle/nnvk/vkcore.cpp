@@ -1,40 +1,41 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2021 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
-#include <os.h>
-#include <jvm.h>
-#include <common/settings.h>
-#include "gpu.h"
+#include <vector>
+#include <string>
+#include <string_view>
+#include <stdexcept>
+#include <dlfcn.h>
+#include <vulkan/vulkan_raii.hpp>
+#include <adrenotools/driver.h>
+#include <range/v3/algorithm.hpp>
+#include <frozen/string.h>
+#include "logging.h"
+#include "vkcore.h"
 
-namespace skyline::gpu {
-    static vk::raii::Instance CreateInstance(const DeviceState &state, const vk::raii::Context &context) {
-        vk::ApplicationInfo applicationInfo{
-            .pApplicationName = "Skyline",
-            .applicationVersion = static_cast<uint32_t>(state.jvm->GetVersionCode()), // Get the application version from JNI
-            .pEngineName = "FTX1", // "Fast Tegra X1"
-            .apiVersion = VkApiVersion,
-        };
+static constexpr std::size_t Hash(std::string_view view) {
+    return frozen::elsa<frozen::string>{}(frozen::string(view.data(), view.size()), 0);
+}
 
+namespace nnvk {
+    static vk::raii::Instance CreateInstance(vk::ApplicationInfo applicationInfo, bool enableValidation, const vk::raii::Context &context) {
         std::vector<const char *> requiredLayers{};
-        #ifndef NDEBUG
-        if (*state.settings->validationLayer)
+        if (enableValidation)
             requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
-        #endif
 
         auto instanceLayers{context.enumerateInstanceLayerProperties()};
-        if (Logger::configLevel >= Logger::LogLevel::Debug) {
+        if (Logger::IsEnabled(Logger::LogLevel::Debug)) {
             std::string layers;
             for (const auto &instanceLayer : instanceLayers)
-                layers += util::Format("\n* {} (Sv{}.{}.{}, Iv{}.{}.{}) - {}", instanceLayer.layerName, VK_API_VERSION_MAJOR(instanceLayer.specVersion), VK_API_VERSION_MINOR(instanceLayer.specVersion), VK_API_VERSION_PATCH(instanceLayer.specVersion), VK_API_VERSION_MAJOR(instanceLayer.implementationVersion), VK_API_VERSION_MINOR(instanceLayer.implementationVersion), VK_API_VERSION_PATCH(instanceLayer.implementationVersion), instanceLayer.description);
+                layers += fmt::format("\n* {} (Sv{}.{}.{}, Iv{}.{}.{}) - {}", instanceLayer.layerName, VK_API_VERSION_MAJOR(instanceLayer.specVersion), VK_API_VERSION_MINOR(instanceLayer.specVersion), VK_API_VERSION_PATCH(instanceLayer.specVersion), VK_API_VERSION_MAJOR(instanceLayer.implementationVersion), VK_API_VERSION_MINOR(instanceLayer.implementationVersion), VK_API_VERSION_PATCH(instanceLayer.implementationVersion), instanceLayer.description);
             Logger::Debug("Vulkan Layers:{}", layers);
         }
 
-        for (const auto &requiredLayer : requiredLayers) {
-            if (!std::any_of(instanceLayers.begin(), instanceLayers.end(), [&](const vk::LayerProperties &instanceLayer) {
+        if (ranges::any_of(requiredLayers, [&](const char *requiredLayer) {
+            return ranges::none_of(instanceLayers, [&](const vk::LayerProperties &instanceLayer) {
                 return std::string_view(instanceLayer.layerName) == std::string_view(requiredLayer);
-            }))
-                throw exception("Cannot find Vulkan layer: \"{}\"", requiredLayer);
-        }
+        }); }))
+            throw std::runtime_error("Required Vulkan layers are not available");
 
         constexpr std::array<const char *, 3> requiredInstanceExtensions{
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
@@ -43,19 +44,22 @@ namespace skyline::gpu {
         };
 
         auto instanceExtensions{context.enumerateInstanceExtensionProperties()};
-        if (Logger::configLevel >= Logger::LogLevel::Debug) {
+        if (Logger::IsEnabled(Logger::LogLevel::Debug)) {
             std::string extensions;
             for (const auto &instanceExtension : instanceExtensions)
-                extensions += util::Format("\n* {} (v{}.{}.{})", instanceExtension.extensionName, VK_API_VERSION_MAJOR(instanceExtension.specVersion), VK_API_VERSION_MINOR(instanceExtension.specVersion), VK_API_VERSION_PATCH(instanceExtension.specVersion));
+                extensions += fmt::format("\n* {} (v{}.{}.{})",
+                                          instanceExtension.extensionName,
+                                          VK_API_VERSION_MAJOR(instanceExtension.specVersion),
+                                          VK_API_VERSION_MINOR(instanceExtension.specVersion),
+                                          VK_API_VERSION_PATCH(instanceExtension.specVersion));
             Logger::Debug("Vulkan Instance Extensions:{}", extensions);
         }
 
-        for (const auto &requiredExtension : requiredInstanceExtensions) {
-            if (!std::any_of(instanceExtensions.begin(), instanceExtensions.end(), [&](const vk::ExtensionProperties &instanceExtension) {
-                return std::string_view(instanceExtension.extensionName) == std::string_view(requiredExtension);
-            }))
-                throw exception("Cannot find Vulkan instance extension: \"{}\"", requiredExtension);
-        }
+        if (ranges::any_of(requiredInstanceExtensions, [&](const char *requiredInstanceExtension) {
+            return ranges::none_of(instanceExtensions, [&](const vk::ExtensionProperties &instanceExtension) {
+                return std::string_view(instanceExtension.extensionName) == std::string_view(requiredInstanceExtension);
+        }); }))
+            throw std::runtime_error("Required Vulkan instance extensions are not available");
 
         return vk::raii::Instance(context, vk::InstanceCreateInfo{
             .pApplicationInfo = &applicationInfo,
@@ -66,7 +70,8 @@ namespace skyline::gpu {
         });
     }
 
-    static VkBool32 DebugCallback(vk::DebugReportFlagsEXT flags, vk::DebugReportObjectTypeEXT objectType, u64 object, size_t location, i32 messageCode, const char *layerPrefix, const char *messageCStr, GPU *gpu) {
+    static VkBool32 DebugCallback(vk::DebugReportFlagsEXT flags, vk::DebugReportObjectTypeEXT objectType, u64 object, size_t location, i32 messageCode,
+                                  const char *layerPrefix, const char *messageCStr, VkCore *core) {
         constexpr std::array<Logger::LogLevel, 5> severityLookup{
             Logger::LogLevel::Info,  // VK_DEBUG_REPORT_INFORMATION_BIT_EXT
             Logger::LogLevel::Warn,  // VK_DEBUG_REPORT_WARNING_BIT_EXT
@@ -76,7 +81,7 @@ namespace skyline::gpu {
         };
 
         #define IGNORE_VALIDATION_C(string, function) \
-        case util::Hash(string): {                    \
+        case Hash(string): {                          \
             if (string == type) {                     \
                 function                              \
             }                                         \
@@ -97,7 +102,7 @@ namespace skyline::gpu {
         if (first != std::string_view::npos && last != std::string_view::npos) {
             type = type.substr(first + 2, last != std::string_view::npos ? (last - first) - 3 : last);
 
-            auto &traits{gpu->traits.quirks};
+            auto &traits{core->traitsManager.quirks};
 
             auto returnIfBrokenFormat1{[&] {
                 if (!traits.adrenoRelaxedFormatAliasing)
@@ -115,7 +120,7 @@ namespace skyline::gpu {
                 if (formatName.starts_with("BC") && formatName.ends_with("_BLOCK"))
                     return false; // BCn formats
 
-                #define FMT(name) if (formatName == name) return false
+                    #define FMT(name) if (formatName == name) return false
 
                 FMT("B5G6R5_UNORM_PACK16");
                 FMT("R5G6B5_UNORM_PACK16");
@@ -168,7 +173,7 @@ namespace skyline::gpu {
                 return true;
             }};
 
-            switch (util::Hash(type)) {
+            switch (Hash(type)) {
                 IGNORE_VALIDATION("UNASSIGNED-CoreValidation-SwapchainPreTransform") // We handle transformation via Android APIs directly
                 IGNORE_VALIDATION("UNASSIGNED-GeneralParameterPerfWarn-SuboptimalSwapchain") // Same as SwapchainPreTransform
                 IGNORE_VALIDATION("UNASSIGNED-CoreValidation-DrawState-InvalidImageLayout") // We utilize images as VK_IMAGE_LAYOUT_GENERAL rather than optimal layouts for operations
@@ -186,41 +191,38 @@ namespace skyline::gpu {
                 /* Guest driven performance warnings, these cannot be fixed by us */
                 IGNORE_VALIDATION("UNASSIGNED-CoreValidation-Shader-InputNotProduced")
                 IGNORE_VALIDATION("UNASSIGNED-CoreValidation-Shader-OutputNotConsumed")
-
-                /* Pipeline Cache isn't compliant with the Vulkan specification, it depends on driver support for a relaxed version of Vulkan specification's Render Pass Compatibility clause and this will result in validation errors regardless which we need to ignore */
-                IGNORE_VALIDATION("VUID-vkCmdDraw-renderPass-02684")
-                IGNORE_VALIDATION("VUID-vkCmdDraw-subpass-02685")
-                IGNORE_VALIDATION("VUID-vkCmdDrawIndexed-renderPass-02684")
-                IGNORE_VALIDATION("VUID-vkCmdDrawIndexed-subpass-02685")
             }
 
             #undef IGNORE_TYPE
         }
 
-        Logger::Write(severityLookup.at(static_cast<size_t>(std::countr_zero(static_cast<u32>(flags)))), util::Format("Vk{}:{}[0x{:X}]:I{}:L{}: {}", layerPrefix, vk::to_string(vk::DebugReportObjectTypeEXT(objectType)), object, messageCode, location, message));
+        Logger::Write(severityLookup.at(static_cast<size_t>(std::countr_zero(static_cast<u32>(flags)))),
+                      fmt::format("Vk{}:{}[0x{:X}]:I{}:L{}: {}", layerPrefix,
+                                  vk::to_string(vk::DebugReportObjectTypeEXT(objectType)),
+                                  object, messageCode, location, message));
 
         return VK_FALSE;
     }
 
-    static vk::raii::DebugReportCallbackEXT CreateDebugReportCallback(GPU *gpu, const vk::raii::Instance &instance) {
+    static vk::raii::DebugReportCallbackEXT CreateDebugReportCallback(VkCore *core, const vk::raii::Instance &instance) {
         return vk::raii::DebugReportCallbackEXT(instance, vk::DebugReportCallbackCreateInfoEXT{
             .flags = vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | vk::DebugReportFlagBitsEXT::ePerformanceWarning | vk::DebugReportFlagBitsEXT::eInformation | vk::DebugReportFlagBitsEXT::eDebug,
             .pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(&DebugCallback),
-            .pUserData = gpu,
+            .pUserData = core,
         });
     }
 
     static vk::raii::PhysicalDevice CreatePhysicalDevice(const vk::raii::Instance &instance) {
         auto devices{vk::raii::PhysicalDevices(instance)};
         if (devices.empty())
-            throw exception("No Vulkan physical devices found");
+            throw std::runtime_error("No Vulkan physical devices found");
         return std::move(devices.front()); // We just select the first device as we aren't expecting multiple GPUs
     }
 
     static vk::raii::Device CreateDevice(const vk::raii::Context &context,
                                          const vk::raii::PhysicalDevice &physicalDevice,
-                                         decltype(vk::DeviceQueueCreateInfo::queueCount) &vkQueueFamilyIndex,
-                                         TraitManager &traits,
+                                         u32 &vkQueueFamilyIndex,
+                                         vkcore::TraitManager &traits,
                                          void *adrenotoolsImportHandle) {
         auto deviceFeatures2{physicalDevice.getFeatures2<
             vk::PhysicalDeviceFeatures2,
@@ -238,14 +240,14 @@ namespace skyline::gpu {
             vk::PhysicalDeviceIndexTypeUint8FeaturesEXT,
             vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
             vk::PhysicalDeviceRobustness2FeaturesEXT,
-            vk::PhysicalDeviceBufferDeviceAddressFeaturesKHR>()};
+            vk::PhysicalDeviceBufferDeviceAddressFeatures>()};
         decltype(deviceFeatures2) enabledFeatures2{}; // We only want to enable features we required due to potential overhead from unused features
 
         #define FEAT_REQ(structName, feature)                                            \
-        if (deviceFeatures2.get<structName>().feature)                                   \
-            enabledFeatures2.get<structName>().feature = true;                           \
-        else                                                                             \
-            throw exception("Vulkan device doesn't support required feature: " #feature)
+            if (deviceFeatures2.get<structName>().feature)                                   \
+                enabledFeatures2.get<structName>().feature = true;                           \
+            else                                                                             \
+                throw std::runtime_error("Vulkan device doesn't support required feature: " #feature)
 
         FEAT_REQ(vk::PhysicalDeviceFeatures2, features.independentBlend);
         FEAT_REQ(vk::PhysicalDeviceFeatures2, features.shaderImageGatherExtended);
@@ -263,10 +265,10 @@ namespace skyline::gpu {
         };
 
         for (const auto &requiredExtension : enabledExtensions) {
-            if (!std::any_of(deviceExtensions.begin(), deviceExtensions.end(), [&](const vk::ExtensionProperties &deviceExtension) {
+            if (ranges::none_of(deviceExtensions, [&](const vk::ExtensionProperties &deviceExtension) {
                 return std::string_view(deviceExtension.extensionName) == std::string_view(requiredExtension.data());
             }))
-                throw exception("Cannot find Vulkan device extension: \"{}\"", requiredExtension.data());
+                throw std::runtime_error(fmt::format("Cannot find Vulkan device extension: \"{}\"", requiredExtension.data()));
         }
 
         auto deviceProperties2{physicalDevice.getProperties2<
@@ -276,7 +278,7 @@ namespace skyline::gpu {
             vk::PhysicalDeviceTransformFeedbackPropertiesEXT,
             vk::PhysicalDeviceSubgroupProperties>()};
 
-        traits = TraitManager{deviceFeatures2, enabledFeatures2, deviceExtensions, enabledExtensions, deviceProperties2, physicalDevice};
+        traits = vkcore::TraitManager{deviceFeatures2, enabledFeatures2, deviceExtensions, enabledExtensions, deviceProperties2, physicalDevice};
         traits.ApplyDriverPatches(context, adrenotoolsImportHandle);
 
         std::vector<const char *> pEnabledExtensions;
@@ -286,89 +288,53 @@ namespace skyline::gpu {
 
         auto queueFamilies{physicalDevice.getQueueFamilyProperties()};
         float queuePriority{1.0f}; //!< The priority of the only queue we use, it's set to the maximum of 1.0
-        vk::StructureChain<vk::DeviceQueueCreateInfo, vk::DeviceQueueGlobalPriorityCreateInfoEXT> queueCreateInfo{
-            [&]() -> vk::DeviceQueueCreateInfo {
-                decltype(vk::DeviceQueueCreateInfo::queueFamilyIndex) index{};
-                for (const auto &queueFamily : queueFamilies) {
-                    if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics && queueFamily.queueFlags & vk::QueueFlagBits::eCompute) {
-                        vkQueueFamilyIndex = index;
-                        return vk::DeviceQueueCreateInfo{
-                            .queueFamilyIndex = index,
-                            .queueCount = 1,
-                            .pQueuePriorities = &queuePriority,
-                        };
-                    }
-                    index++;
+        vk::DeviceQueueCreateInfo queueCreateInfo{[&] {
+            u32 index{};
+            for (const auto &queueFamily : queueFamilies) {
+                if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics && queueFamily.queueFlags & vk::QueueFlagBits::eCompute) {
+                    vkQueueFamilyIndex = index;
+                    return vk::DeviceQueueCreateInfo{
+                        .queueFamilyIndex = index,
+                        .queueCount = 1,
+                        .pQueuePriorities = &queuePriority,
+                    };
                 }
-                throw exception("Cannot find a queue family with both eGraphics and eCompute bits set");
-            }(),
-            vk::DeviceQueueGlobalPriorityCreateInfoEXT{
-                .globalPriority = traits.quirks.maxGlobalPriority,
+                index++;
             }
-        };
+            throw std::runtime_error("Cannot find a queue family with both eGraphics and eCompute bits set");
+        }()};
 
-        if (!traits.supportsGlobalPriority)
-            queueCreateInfo.unlink<vk::DeviceQueueGlobalPriorityCreateInfoEXT>();
-
-        if (Logger::configLevel >= Logger::LogLevel::Info) {
+        if (Logger::IsEnabled(Logger::LogLevel::Info)) {
             std::string extensionString;
             for (const auto &extension : deviceExtensions)
-                extensionString += util::Format("\n* {} (v{}.{}.{})", extension.extensionName, VK_API_VERSION_MAJOR(extension.specVersion), VK_API_VERSION_MINOR(extension.specVersion), VK_API_VERSION_PATCH(extension.specVersion));
-
-            std::string queueString;
-            u32 familyIndex{};
-            for (const auto &queueFamily : queueFamilies)
-                queueString += util::Format("\n* {}x{}{}{}{}{}: TSB{} MIG({}x{}x{}){}", queueFamily.queueCount, queueFamily.queueFlags & vk::QueueFlagBits::eGraphics ? 'G' : '-', queueFamily.queueFlags & vk::QueueFlagBits::eCompute ? 'C' : '-', queueFamily.queueFlags & vk::QueueFlagBits::eTransfer ? 'T' : '-', queueFamily.queueFlags & vk::QueueFlagBits::eSparseBinding ? 'S' : '-', queueFamily.queueFlags & vk::QueueFlagBits::eProtected ? 'P' : '-', queueFamily.timestampValidBits, queueFamily.minImageTransferGranularity.width, queueFamily.minImageTransferGranularity.height, queueFamily.minImageTransferGranularity.depth, familyIndex++ == vkQueueFamilyIndex ? " <--" : "");
+                extensionString += fmt::format("\n* {} (v{}.{}.{})", extension.extensionName,
+                                               VK_API_VERSION_MAJOR(extension.specVersion), VK_API_VERSION_MINOR(extension.specVersion), VK_API_VERSION_PATCH(extension.specVersion));
 
             auto properties{deviceProperties2.get<vk::PhysicalDeviceProperties2>().properties};
-            Logger::Info("Vulkan Device:\nName: {}\nType: {}\nDriver ID: {}\nVulkan Version: {}.{}.{}\nDriver Version: {}.{}.{}\nQueues:{}\nExtensions:{}\nTraits:{}\nQuirks:{}",
+            Logger::Info("Vulkan Device:\nName: {}\nType: {}\nDriver ID: {}\nVulkan Version: {}.{}.{}\nDriver Version: {}.{}.{}\nExtensions:{}\n",
                          properties.deviceName, vk::to_string(properties.deviceType),
                          vk::to_string(deviceProperties2.get<vk::PhysicalDeviceDriverProperties>().driverID),
                          VK_API_VERSION_MAJOR(properties.apiVersion), VK_API_VERSION_MINOR(properties.apiVersion), VK_API_VERSION_PATCH(properties.apiVersion),
                          VK_API_VERSION_MAJOR(properties.driverVersion), VK_API_VERSION_MINOR(properties.driverVersion), VK_API_VERSION_PATCH(properties.driverVersion),
-                         queueString, extensionString, traits.Summary(), traits.quirks.Summary());
+                         extensionString);
         }
 
         return vk::raii::Device(physicalDevice, vk::DeviceCreateInfo{
             .pNext = &enabledFeatures2,
             .queueCreateInfoCount = 1,
-            .pQueueCreateInfos = &queueCreateInfo.get<vk::DeviceQueueCreateInfo>(),
+            .pQueueCreateInfos = &queueCreateInfo,
             .enabledExtensionCount = static_cast<uint32_t>(pEnabledExtensions.size()),
             .ppEnabledExtensionNames = pEnabledExtensions.data(),
         });
     }
 
-
-    GPU::GPU(const DeviceState &state, PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr, void *adrenotoolsImportHandle)
-        : state(state),
-          adrenotoolsImportHandle{adrenotoolsImportHandle},
-          vkContext(vkGetInstanceProcAddr),
-          vkInstance(CreateInstance(state, vkContext)),
-          vkDebugReportCallback(CreateDebugReportCallback(this, vkInstance)),
-          vkPhysicalDevice(CreatePhysicalDevice(vkInstance)),
-          vkDevice(CreateDevice(vkContext, vkPhysicalDevice, vkQueueFamilyIndex, traits, adrenotoolsImportHandle)),
-          vkQueue(vkDevice, vkQueueFamilyIndex, 0),
-          memory(*this),
-          scheduler(state, *this),
-          presentation(state, *this),
-          texture(*this),
-          buffer(*this),
-          megaBufferAllocator(*this),
-          descriptor(*this),
-          helperShaders(*this, state.os->assetFileSystem),
-          renderPassCache(*this),
-          framebufferCache(*this),
-          debugTracingBuffer(memory.AllocateBuffer(DebugTracingBufferSize)) {}
-
-    void GPU::Initialise() {
-        std::string titleId{state.loader->nacp->GetSaveDataOwnerId()};
-        graphicsPipelineAssembler.emplace(*this, state.os->publicAppFilesPath + "vk_graphics_pipeline_cache/" + titleId);
-        shader.emplace(state, *this,
-                       state.os->publicAppFilesPath + "shader_replacements/" + titleId,
-                       state.os->publicAppFilesPath + "shader_dumps/" + titleId);
-        if (!*state.settings->disableShaderCache)
-            graphicsPipelineCacheManager.emplace(state,
-                                                 state.os->publicAppFilesPath + "graphics_pipeline_cache/" + titleId);
-        graphicsPipelineManager.emplace(*this);
-    }
+    VkCore::VkCore(PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr, void *adrenotoolsImportHandle, vk::ApplicationInfo applicationInfo, bool enableValidation)
+        : adrenotoolsImportHandle{adrenotoolsImportHandle},
+          context{vkGetInstanceProcAddr},
+          instance{CreateInstance(applicationInfo, enableValidation, context)},
+          debugReportCallback{CreateDebugReportCallback(this, instance)},
+          physicalDevice{CreatePhysicalDevice(instance)},
+          device{CreateDevice(context, physicalDevice, queueFamilyIndex, traitsManager, adrenotoolsImportHandle)},
+          queue{device, queueFamilyIndex, 0},
+          memoryManager{*this} {}
 }

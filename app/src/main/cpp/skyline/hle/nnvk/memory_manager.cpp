@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2021 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
-#include <gpu.h>
+#include <stdexcept>
+#include <vulkan/vulkan_raii.hpp>
+#include "types.h"
+#include "vkcore.h"
 #include "memory_manager.h"
 
-namespace skyline::gpu::memory {
+namespace nnvk::vkcore {
     /**
      * @brief If the result isn't VK_SUCCESS then an exception is thrown
      */
@@ -33,9 +36,9 @@ namespace skyline::gpu::memory {
         return pointer;
     }
 
-    MemoryManager::MemoryManager(GPU &pGpu) : gpu{pGpu} {
-        auto instanceDispatcher{gpu.vkInstance.getDispatcher()};
-        auto deviceDispatcher{gpu.vkDevice.getDispatcher()};
+    MemoryManager::MemoryManager(VkCore &core) : core{core} {
+        auto instanceDispatcher{core.instance.getDispatcher()};
+        auto deviceDispatcher{core.device.getDispatcher()};
         VmaVulkanFunctions vulkanFunctions{
             .vkGetPhysicalDeviceProperties = instanceDispatcher->vkGetPhysicalDeviceProperties,
             .vkGetPhysicalDeviceMemoryProperties = instanceDispatcher->vkGetPhysicalDeviceMemoryProperties,
@@ -61,11 +64,11 @@ namespace skyline::gpu::memory {
             .vkGetPhysicalDeviceMemoryProperties2KHR = instanceDispatcher->vkGetPhysicalDeviceMemoryProperties2,
         };
         VmaAllocatorCreateInfo allocatorCreateInfo{
-            .physicalDevice = *gpu.vkPhysicalDevice,
-            .device = *gpu.vkDevice,
-            .instance = *gpu.vkInstance,
+            .physicalDevice = *core.physicalDevice,
+            .device = *core.device,
+            .instance = *core.instance,
             .pVulkanFunctions = &vulkanFunctions,
-            .vulkanApiVersion = VkApiVersion,
+            .vulkanApiVersion = VK_API_VERSION_1_1,
         };
         ThrowOnFail(vmaCreateAllocator(&allocatorCreateInfo, &vmaAllocator));
     }
@@ -80,7 +83,7 @@ namespace skyline::gpu::memory {
             .usage = vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
             .sharingMode = vk::SharingMode::eExclusive,
             .queueFamilyIndexCount = 1,
-            .pQueueFamilyIndices = &gpu.vkQueueFamilyIndex,
+            .pQueueFamilyIndices = &core.queueFamilyIndex,
         };
         VmaAllocationCreateInfo allocationCreateInfo{
             .flags = VMA_ALLOCATION_CREATE_MAPPED_BIT,
@@ -92,7 +95,7 @@ namespace skyline::gpu::memory {
         VmaAllocationInfo allocationInfo;
         ThrowOnFail(vmaCreateBuffer(vmaAllocator, &static_cast<const VkBufferCreateInfo &>(bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo));
 
-        return std::make_shared<memory::StagingBuffer>(reinterpret_cast<u8 *>(allocationInfo.pMappedData), size, vmaAllocator, buffer, allocation);
+        return std::make_shared<StagingBuffer>(reinterpret_cast<u8 *>(allocationInfo.pMappedData), size, vmaAllocator, buffer, allocation);
     }
 
     Buffer MemoryManager::AllocateBuffer(vk::DeviceSize size) {
@@ -101,7 +104,7 @@ namespace skyline::gpu::memory {
             .usage = vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformTexelBuffer | vk::BufferUsageFlagBits::eStorageTexelBuffer | vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndirectBuffer | vk::BufferUsageFlagBits::eTransformFeedbackBufferEXT,
             .sharingMode = vk::SharingMode::eExclusive,
             .queueFamilyIndexCount = 1,
-            .pQueueFamilyIndices = &gpu.vkQueueFamilyIndex,
+            .pQueueFamilyIndices = &core.queueFamilyIndex,
         };
         VmaAllocationCreateInfo allocationCreateInfo{
             .flags = VMA_ALLOCATION_CREATE_MAPPED_BIT,
@@ -144,33 +147,33 @@ namespace skyline::gpu::memory {
         return Image(vmaAllocator, image, allocation);
     }
 
-    ImportedBuffer MemoryManager::ImportBuffer(span<u8> cpuMapping) {
-        if (!gpu.traits.supportsAdrenoDirectMemoryImport)
-            throw exception("Cannot import host buffers without adrenotools import support!");
+    ImportedBuffer MemoryManager::ImportBuffer(std::span<u8> cpuMapping) {
+        if (!core.traitsManager.supportsAdrenoDirectMemoryImport)
+            throw std::runtime_error("Cannot import host buffers without adrenotools import support!");
 
-        if (!adrenotools_import_user_mem(gpu.adrenotoolsImportHandle, cpuMapping.data(), cpuMapping.size()))
-            throw exception("Failed to import user memory");
+        if (!adrenotools_import_user_mem(core.adrenotoolsImportHandle, cpuMapping.data(), cpuMapping.size()))
+            throw std::runtime_error("Failed to import user memory");
 
-        auto buffer{gpu.vkDevice.createBuffer(vk::BufferCreateInfo{
+        auto buffer{core.device.createBuffer(vk::BufferCreateInfo{
             .size = cpuMapping.size(),
             .usage = vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformTexelBuffer | vk::BufferUsageFlagBits::eStorageTexelBuffer | vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndirectBuffer | vk::BufferUsageFlagBits::eTransformFeedbackBufferEXT,
             .sharingMode = vk::SharingMode::eExclusive
         })};
 
-        auto memory{gpu.vkDevice.allocateMemory(vk::MemoryAllocateInfo{
+        auto memory{core.device.allocateMemory(vk::MemoryAllocateInfo{
             .allocationSize = cpuMapping.size(),
-            .memoryTypeIndex = gpu.traits.hostVisibleCoherentCachedMemoryType,
+            .memoryTypeIndex = core.traitsManager.hostVisibleCoherentCachedMemoryType,
         })};
 
-        if (!adrenotools_validate_gpu_mapping(gpu.adrenotoolsImportHandle))
-            throw exception("Failed to validate GPU mapping");
+        if (!adrenotools_validate_gpu_mapping(core.adrenotoolsImportHandle))
+            throw std::runtime_error("Failed to validate GPU mapping");
 
-        gpu.vkDevice.bindBufferMemory2({vk::BindBufferMemoryInfo{
+        core.device.bindBufferMemory2({vk::BindBufferMemoryInfo{
             .buffer = *buffer,
             .memory = *memory,
             .memoryOffset = 0
         }});
 
-        return ImportedBuffer{cpuMapping, std::move(buffer), std::move(memory)};
+        return ImportedBuffer{std::move(buffer), std::move(memory), cpuMapping};
     }
 }
