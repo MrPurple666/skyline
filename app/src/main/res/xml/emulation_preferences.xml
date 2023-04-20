@@ -34,7 +34,8 @@
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
             android:defaultValue="false"
-            app:key="internet_enabled"
+            android:summary="@string/internet"
+            app:key="is_internet_enabled"
             app:title="Enable Internet" />
     </PreferenceCategory>
     <PreferenceCategory
