@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <type_traits>
+#include <xxhash.h>
 
 namespace nnvk::util {
     /**
@@ -53,4 +54,14 @@ namespace nnvk::util {
         else
             return (value % multiple) == 0;
     }
+
+    /**
+    * @brief A fast hash for any trivial object that is designed to be utilized with hash-based containers
+    */
+    template<typename T>
+    struct ObjectHash {
+        std::size_t operator()(const T &object) const {
+            return XXH64(&object, sizeof(object), 0);
+        }
+    };
 }

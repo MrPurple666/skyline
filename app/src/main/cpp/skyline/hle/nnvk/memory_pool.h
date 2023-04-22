@@ -9,6 +9,10 @@
 #include "versioning.h"
 
 namespace nnvk {
+    namespace texture {
+        struct VirtualTexture;
+    }
+
     struct VkCore;
 
     struct MemoryPoolFlags {
@@ -61,6 +65,8 @@ namespace nnvk {
 
     class MemoryPool {
       private:
+        friend texture::VirtualTexture;
+
         const char *debugLabel{};
         MemoryPoolFlags flags;
         VkCore &vkCore;

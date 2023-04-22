@@ -6,6 +6,7 @@
 #include "types.h"
 #include "versioning.h"
 #include "format.h"
+#include "texture.h"
 
 namespace nnvk {
     struct DeviceFlags {
@@ -193,7 +194,9 @@ namespace nnvk {
         bool enableSeperateSamplerTextureSupport{};
 
       public:
-        Device(ApiVersion version, const DeviceBuilder &builder);
+        texture::VirtualTextureManager textureManager;
+
+        Device(ApiVersion version, const DeviceBuilder &builder, VkCore &vkCore);
 
         ~Device();
 

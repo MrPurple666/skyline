@@ -29,10 +29,11 @@ namespace nnvk {
     NNVK_CONTEXT_WRAP_TRIVIAL_0(DeviceFlags, DeviceBuilder, GetFlags)
     /* End wrappers */
 
-    Device::Device(ApiVersion version, const DeviceBuilder &builder)
+    Device::Device(ApiVersion version, const DeviceBuilder &builder, VkCore &vkCore)
         : enableDeferredFinalize{builder.flags.deferredFinalize},
           enableDeferredFirmwareMemoryReclaim{builder.flags.deferredFirmwareMemoryReclaim},
-          enableSeperateSamplerTextureSupport{builder.flags.enableSeperateSamplerTextureSupport} {
+          enableSeperateSamplerTextureSupport{builder.flags.enableSeperateSamplerTextureSupport},
+          textureManager{vkCore} {
         NNVK_FILL_VERSIONED_STRUCT(Device);
     }
 
@@ -141,7 +142,7 @@ namespace nnvk {
 
     /* Wrappers */
     bool Context::DeviceInitialize(Device *device, const DeviceBuilder *builder) {
-        new (device) Device(apiVersion, *builder);
+        new (device) Device(apiVersion, *builder, vkCore);
         return true;
     }
 

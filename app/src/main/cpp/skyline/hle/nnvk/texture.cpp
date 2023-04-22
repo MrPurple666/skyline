@@ -9,7 +9,7 @@
 #include "texture.h"
 
 namespace nnvk {
-    std::pair<u32, u32> TextureBuilder::GetAxisSamples() const {
+    vk::Extent2D TextureBuilder::GetAxisSamples() const {
         if (target != TextureTarget::Target2DMultisample && target != TextureTarget::Target2DMultisampleArray)
             return {1, 1};
 
@@ -29,6 +29,37 @@ namespace nnvk {
         }
     }
 
+    std::pair<vk::Extent3D, bool> TextureBuilder::GetStorageDimensions() const {
+        auto axisSamples{GetAxisSamples()};
+
+        switch (target) {
+            case TextureTarget::Target1D:
+                return {{size.width, 1, 1}, false};
+            case TextureTarget::Target2D:
+                return {{size.width, size.height, 1}, false};
+            case TextureTarget::Target3D:
+                return {{size.width, size.height, size.depth}, false};
+            case TextureTarget::Target1DArray:
+                Logger::Error("HAD 1D");
+                return {{size.width, 1, size.width}, true};
+            case TextureTarget::Target2DArray:
+                return {{size.width, size.height, size.depth}, true};
+            case TextureTarget::Target2DMultisample:
+                return {{size.width * axisSamples.width, size.height * axisSamples.height, 1}, false};
+            case TextureTarget::Target2DMultisampleArray:
+                return {{size.width * axisSamples.width, size.height * axisSamples.height, size.depth}, true};
+            case TextureTarget::TargetRectangle:
+                return {{size.width, size.height, 1}, false};
+                break;
+            case TextureTarget::TargetCubemap:
+                return {{size.width, size.height, 6}, true};
+            case TextureTarget::TargetCubemapArray:
+                return {{size.width, size.height, size.depth * 6}, true};
+            case TextureTarget::TargetBuffer:
+                return {{size.width, 1, 1}, false};
+        }
+    }
+
     u8 TextureBuilder::CalcTileHeight() const {
         if (flags.videoDecode)
             return 2;
@@ -38,7 +69,7 @@ namespace nnvk {
 
         auto axisSamples{GetAxisSamples()};
         const auto &formatInfo{format::GetFormatInfo(format)};
-        return layout::SelectBlockLinearTileHeight(size.height * axisSamples.second, formatInfo.blockHeight);
+        return layout::SelectBlockLinearTileHeight(size.height * axisSamples.height, formatInfo.blockHeight);
     }
 
     u8 TextureBuilder::CalcTileDepth() const {
@@ -159,14 +190,13 @@ namespace nnvk {
             return stride * size.height;
         }
 
-        bool is3D{target == TextureTarget::Target3D};
-        u32 layerCount{is3D ? 1 : size.depth};
-        u32 depth{is3D ? size.depth : 1};
-        u64 layerSize{layout::GetBlockLinearLayerSize({size.width, size.height, depth},
-                                                      formatInfo.blockHeight, formatInfo.blockWidth, formatInfo.bytesPerBlock,
-                                                      CalcTileHeight(), CalcTileDepth(), levels, layerCount > 1)};
 
-        return layerSize * layerCount;
+        auto [storageDimensions, hasLayers]{GetStorageDimensions()};
+        u64 layerSize{layout::GetBlockLinearLayerSize({storageDimensions.width, storageDimensions.height, hasLayers ? 1 : storageDimensions.depth},
+                                                      formatInfo.blockHeight, formatInfo.blockWidth, formatInfo.bytesPerBlock,
+                                                      CalcTileHeight(), CalcTileDepth(), levels, hasLayers)};
+
+        return layerSize * (hasLayers ? storageDimensions.depth : 1);
     }
     
     u64 TextureBuilder::GetStorageAlignment() const {
@@ -431,22 +461,17 @@ namespace nnvk {
     /* End wrappers */
 
 
-    Texture::Texture(ApiVersion version, VkCore &vkCore, const TextureBuilder &builder)
+    Texture::Texture(ApiVersion version, const TextureBuilder &builder)
         : device{builder.device},
+          virtualTexture{device->textureManager.FindOrCreate(builder)},
           flags{builder.flags},
           target{builder.target},
           size{builder.size},
-          levels{builder.levels},
           format{builder.format},
-          samples{builder.samples},
           swizzleMapping{builder.swizzleMapping},
           depthStencilMode{builder.depthStencilMode},
           memoryPool{builder.memoryPool},
-          memoryOffset{builder.memoryOffset},
-          stride{builder.stride},
-          storageSize{builder.GetStorageSize()},
-          storageClass{builder.GetStorageClass()},
-          vkCore{vkCore} {
+          memoryOffset{builder.memoryOffset} {
         NNVK_FILL_VERSIONED_STRUCT(Texture);
         // TODO HANDLE PACKAGED
     }
@@ -462,7 +487,7 @@ namespace nnvk {
     }
 
     StorageClass Texture::GetStorageClass() const {
-        return storageClass;
+        return virtualTexture->storageClass;
     }
 
     i64 Texture::GetViewOffset(TextureView *view) const {
@@ -490,7 +515,7 @@ namespace nnvk {
     }
 
     i32 Texture::GetLevels() const {
-        return static_cast<i32>(levels);
+        return static_cast<i32>(virtualTexture->levels);
     }
 
     Format Texture::GetFormat() const {
@@ -498,7 +523,7 @@ namespace nnvk {
     }
 
     i32 Texture::GetSamples() const {
-        return samples;
+        return virtualTexture->samples;
     }
 
     void Texture::GetSwizzle(TextureSwizzle *r, TextureSwizzle *g, TextureSwizzle *b, TextureSwizzle *a) const {
@@ -513,7 +538,7 @@ namespace nnvk {
     }
 
     i64 Texture::GetStride() const {
-        return static_cast<i64>(stride);
+        return static_cast<i64>(virtualTexture->stride);
     }
 
     TextureAddress Texture::GetTextureAddress() const {
@@ -558,7 +583,7 @@ namespace nnvk {
     }
 
     i32 Texture::GetStorageSize() const {
-        return static_cast<i32>(storageSize);
+        return static_cast<i32>(virtualTexture->storageSize);
     }
 
     bool Texture::Compare(const Texture *texture) const {
@@ -571,7 +596,7 @@ namespace nnvk {
 
     /* Wrappers */
     bool Context::TextureInitialize(Texture *texture, const TextureBuilder *builder) {
-        new (texture) Texture(apiVersion, vkCore, *builder);
+        new (texture) Texture(apiVersion, *builder);
         return true;
     }
 
@@ -606,4 +631,153 @@ namespace nnvk {
     NNVK_CONTEXT_WRAP_TRIVIAL_0(i32, Texture, GetStorageSize)
     NNVK_CONTEXT_WRAP_TRIVIAL_1(bool, Texture, Compare, const Texture *)
     NNVK_CONTEXT_WRAP_TRIVIAL_0(u64, Texture, GetDebugID)
+
+    namespace texture {
+        static vk::ImageType ConvertImageType(TextureTarget target) {
+            switch (target) {
+                case TextureTarget::Target1D:
+                case TextureTarget::Target1DArray:
+                    return vk::ImageType::e1D;
+                case TextureTarget::Target2D:
+                case TextureTarget::Target2DArray:
+                case TextureTarget::Target2DMultisample:
+                case TextureTarget::Target2DMultisampleArray:
+                case TextureTarget::TargetCubemap:
+                case TextureTarget::TargetCubemapArray:
+                case TextureTarget::TargetRectangle:
+                    return vk::ImageType::e2D;
+                case TextureTarget::Target3D:
+                    return vk::ImageType::e3D;
+                default:
+                    throw std::runtime_error("Invalid texture target");
+            }
+        }
+        VirtualTexture::ImageAlias::AliasInfo::AliasInfo(Format format, vk::Extent2D size, TextureTarget target)
+            : format{format}, size{size}, type{ConvertImageType(target)} {}
+
+        static vk::SampleCountFlagBits ConvertSampleCount(i32 samples) {
+            switch (samples) {
+                case 1:
+                    return vk::SampleCountFlagBits::e1;
+                case 2:
+                    return vk::SampleCountFlagBits::e2;
+                case 4:
+                    return vk::SampleCountFlagBits::e4;
+                case 8:
+                    return vk::SampleCountFlagBits::e8;
+                case 16:
+                    return vk::SampleCountFlagBits::e16;
+                default:
+                    throw std::runtime_error("Invalid sample count");
+            }
+        }
+
+        vk::ImageCreateInfo VirtualTexture::GetImageAliasCreateInfo(const ImageAlias::AliasInfo &info) {
+            vk::ImageCreateFlags createFlags{};
+
+            if (formatList.size() > 1)
+                createFlags |= vk::ImageCreateFlagBits::eMutableFormat;
+
+            if (hasLayers)
+                createFlags |= vk::ImageCreateFlagBits::e2DArrayCompatible;
+
+            if (hasLayers && size.depth > 6)
+                createFlags |= vk::ImageCreateFlagBits::eCubeCompatible;
+
+
+            //  TODO handle block texel view
+            const auto &formatInfo{format::GetFormatInfo(info.format)};
+
+            vk::ImageUsageFlags createUsageFlags{vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eSampled};
+            if (usedAsStorage)
+                createUsageFlags |= vk::ImageUsageFlagBits::eStorage;
+
+            if (!formatInfo.IsCompressed()) {
+                if (formatInfo.IsDepthStencil())
+                    createUsageFlags |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
+                else
+                    createUsageFlags |= vk::ImageUsageFlagBits::eColorAttachment;
+            }
+
+            return {
+                .flags = createFlags,
+                .imageType = info.type,
+                .format = formatInfo.vkFormat,
+                .extent = vk::Extent3D{info.size.width, info.size.height, hasLayers ? 1 : size.depth},
+                .mipLevels = levels,
+                .arrayLayers = hasLayers ? size.depth : 1,
+                .samples = ConvertSampleCount(samples),
+                .tiling = flags.IsLinearLayout() ? vk::ImageTiling::eLinear : vk::ImageTiling::eOptimal,
+                .usage = createUsageFlags,
+                .sharingMode = vk::SharingMode::eExclusive,
+                .queueFamilyIndexCount = 0,
+                .initialLayout = flags.IsLinearLayout() ? vk::ImageLayout::ePreinitialized : vk::ImageLayout::eUndefined
+            };
+        }
+
+        void VirtualTexture::ReallocateMemory() {
+            if (flags.IsLinearLayout() || target == TextureTarget::TargetBuffer) {
+                vkAllocation.reset();
+            } else {
+                auto createInfo{GetImageAliasCreateInfo({format, {size.width, size.height}, target})};
+                vkAllocation.emplace(vkCore.memoryManager.AllocateImageMemory(createInfo));
+            }
+        }
+
+        VirtualTexture::VirtualTexture(VkCore &vkCore, const TextureBuilder &builder, TextureAddress address)
+            : vkCore{vkCore},
+              address{address},
+              flags{builder.flags},
+              target{builder.target},
+              size{builder.size},
+              levels{builder.levels},
+              format{builder.format},
+              samples{builder.samples},
+              stride{builder.stride},
+              storageSize{builder.GetStorageSize()},
+              storageClass{builder.GetStorageClass()},
+              storageDimensions{builder.GetStorageDimensions().first},
+              hasLayers{builder.GetStorageDimensions().second}, // STRUCT??
+              tileHeight{builder.CalcTileHeight()},
+              tileDepth{builder.CalcTileDepth()},
+              memoryPool{builder.memoryPool},
+              memoryOffset{static_cast<u64>(builder.memoryOffset)},
+              memoryBuffer{vkCore.memoryManager.CreateAliasingBuffer(*memoryPool->buffer.vkMemory, memoryOffset, storageSize)} {
+            ReallocateMemory();
+            Logger::Error("Impl {}", static_cast<u32>(format));
+            // UPLOAD DATA PACKAGED
+        }
+
+        bool VirtualTexture::IsCompatible(const TextureBuilder &builder) const {
+            // TODO: LOGIC
+            return true;
+        }
+
+        VirtualTextureManager::VirtualTextureManager(VkCore &vkCore) : vkCore{vkCore} {}
+
+        // LOCK
+        VirtualTextureHandle VirtualTextureManager::FindOrCreate(const TextureBuilder &builder) {
+            TextureAddress address{builder.memoryPool->GetBufferAddress() + static_cast<u64>(builder.memoryOffset)};
+            auto &matchedTextures{textures[address]};
+            for (auto it{matchedTextures.begin()}; it != matchedTextures.end(); it++) {
+                if (it->IsCompatible(builder)) {
+                    Logger::Error("MATCH! need code!");
+                    it->refs++;
+                    return it;
+                }
+            }
+
+
+            // Refcount is initialized to 1
+            matchedTextures.emplace_back(vkCore, builder, address);
+            return std::prev(matchedTextures.end());
+        }
+
+        void VirtualTextureManager::PutTexture(VirtualTextureHandle texture) {
+            if (--texture->refs == 0) {
+                auto &matchedTextures{textures[texture->address]};
+                matchedTextures.erase(texture);
+            }
+        }
+    }
 }

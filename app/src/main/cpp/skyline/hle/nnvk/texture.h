@@ -5,13 +5,26 @@
 
 #include <optional>
 #include <utility>
+#include <map>
+#include <unordered_map>
+#include <list>
 #include <vulkan/vulkan_raii.hpp>
+#include "utils.h"
 #include "types.h"
 #include "versioning.h"
 #include "format.h"
 
 namespace nnvk {
     class Device;
+
+    namespace texture {
+        struct VirtualTexture;
+
+        class VirtualTextureManager;
+
+        using VirtualTextureHandle = std::list<VirtualTexture>::iterator;
+
+    }
 
     struct TextureFlags {
         bool display : 1;
@@ -26,6 +39,10 @@ namespace nnvk {
         bool minimalLayout : 1;
         bool zCullSupportStencil : 1;
         u32 _pad_ : 21;
+
+        bool IsLinearLayout() const {
+            return linear || linearRenderTarget;
+        }
     };
     static_assert(sizeof(TextureFlags) == 0x4);
 
@@ -77,6 +94,10 @@ namespace nnvk {
       private:
         friend Texture;
 
+        friend texture::VirtualTexture;
+
+        friend texture::VirtualTextureManager;
+
         Device *device;
         TextureFlags flags{}; //!< TODO VAL
         TextureTarget target{TextureTarget::Target2D}; //!< TODO VAL
@@ -93,7 +114,9 @@ namespace nnvk {
         u64 stride;
         u32 glTextureName;
 
-        std::pair<u32, u32> GetAxisSamples() const;
+        vk::Extent2D GetAxisSamples() const;
+
+        std::pair<vk::Extent3D, bool> GetStorageDimensions() const;
 
         u8 CalcTileHeight() const;
 
@@ -186,6 +209,8 @@ namespace nnvk {
     };
     NNVK_VERSIONED_STRUCT(TextureBuilder, 0x80);
 
+    using TextureAddress = u64;
+
     class TextureView {
       private:
         i16 baseLevel{};
@@ -204,7 +229,6 @@ namespace nnvk {
             bool swizzle : 1;
             bool depthStencilMode : 1;
             bool target : 1;
-
         } written{};
 
       public:
@@ -245,30 +269,22 @@ namespace nnvk {
         i32 depth;
     };
 
-    using TextureAddress = u64;
-
     class Texture {
       private:
         const char *debugLabel{};
         Device *device;
+        texture::VirtualTextureHandle virtualTexture;
         TextureFlags flags;
         TextureTarget target;
         vk::Extent3D size;
-        u32 levels;
         Format format;
-        i32 samples;
         TextureSwizzleMapping swizzleMapping;
         TextureDepthStencilMode depthStencilMode;
         MemoryPool *memoryPool;
         i64 memoryOffset;
-        u64 stride;
-        u64 storageSize;
-        StorageClass storageClass;
-
-        VkCore &vkCore;
 
       public:
-        Texture(ApiVersion version, VkCore &vkCore, const TextureBuilder &builder);
+        Texture(ApiVersion version, const TextureBuilder &builder);
 
         ~Texture();
 
@@ -332,4 +348,96 @@ namespace nnvk {
         u64 GetDebugID() const;
     };
     NNVK_VERSIONED_STRUCT(Texture, 0xC0);
+
+    namespace texture {
+        struct VirtualTexture {
+            VkCore &vkCore;
+            TextureAddress address;
+            TextureFlags flags;
+            TextureTarget target;
+            vk::Extent3D size;
+            u32 levels;
+            Format format;
+            i32 samples;
+            u64 stride;
+            u64 storageSize;
+            StorageClass storageClass;
+            vk::Extent3D storageDimensions;
+            u32 refs{1};
+            bool hasLayers;
+            u8 tileHeight;
+            u8 tileDepth;
+            bool usedAsStorage{};
+            std::vector<vk::Format> formatList;
+            MemoryPool *memoryPool;
+            u64 memoryOffset;
+            vk::raii::Buffer memoryBuffer;
+            std::optional<vkcore::MemoryAllocation> vkAllocation{};
+
+            struct ImageAlias {
+                struct AliasInfo {
+                    Format format;
+                    vk::Extent2D size;
+                    vk::ImageType type;
+
+                    AliasInfo(Format format, vk::Extent2D size, TextureTarget target);
+
+                    bool operator==(const AliasInfo &rhs) const = default;
+                };
+
+                vk::raii::Image image;
+                AliasInfo info;
+
+                struct ImageView {
+                    struct ViewInfo {
+                        vk::ImageViewType type;
+                        vk::Format format;
+                        vk::ComponentMapping components;
+                        vk::ImageSubresourceRange range;
+                    };
+
+                    vk::raii::ImageView view;
+                };
+
+                std::unordered_map<ImageView::ViewInfo, ImageView, util::ObjectHash<ImageView::ViewInfo>> views;
+            };
+
+            vk::ImageCreateInfo GetImageAliasCreateInfo(const ImageAlias::AliasInfo &info);
+
+            std::list<ImageAlias> images;
+
+
+            struct BufferView {
+                struct ViewInfo {
+                    vk::Format format;
+                    vk::DeviceSize offset;
+                    vk::DeviceSize size;
+                };
+
+                vk::raii::BufferView view;
+            };
+            std::unordered_map<BufferView::ViewInfo, BufferView, util::ObjectHash<BufferView::ViewInfo>> buffers;
+
+            void ReallocateMemory();
+
+            VirtualTexture(VkCore &vkCore, const TextureBuilder &builder, TextureAddress address);
+
+            bool IsCompatible(const TextureBuilder &builder) const;
+        };
+
+
+        class VirtualTextureManager {
+          private:
+            VkCore &vkCore;
+            std::map<TextureAddress, std::list<VirtualTexture>> textures;
+
+          public:
+            VirtualTextureManager(VkCore &vkCore);
+
+            VirtualTextureHandle FindOrCreate(const TextureBuilder &builder);
+
+            void PutTexture(VirtualTextureHandle handle);
+        };
+    };
+
 }

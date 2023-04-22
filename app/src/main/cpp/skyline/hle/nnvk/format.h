@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <vulkan/vulkan_raii.hpp>
 #include "types.h"
 
 namespace nnvk {
@@ -184,6 +185,15 @@ namespace nnvk {
             u8 alphaBits;
             u8 depthBits;
             u8 stencilBits;
+            vk::Format vkFormat;
+
+            bool IsCompressed() const {
+                return blockWidth > 1 || blockHeight > 1;
+            }
+
+            bool IsDepthStencil() const {
+                return depthBits > 0 || stencilBits > 0;
+            }
         };
 
         extern const std::array<FormatInfo, static_cast<size_t>(Format::FormatSize)> FormatProperties;

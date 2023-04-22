@@ -40,10 +40,10 @@ namespace nnvk::format {
             {true, true, 12, 1, 1, 32, 32, 32, 0, 0, 0}, // RGB32F
             {true, true, 12, 1, 1, 32, 32, 32, 0, 0, 0}, // RGB32UI
             {true, true, 12, 1, 1, 32, 32, 32, 0, 0, 0}, // RGB32I
-            {true, true, 4, 1, 1, 8, 8, 8, 8, 0, 0}, // RGBA8
-            {true, true, 4, 1, 1, 8, 8, 8, 8, 0, 0}, // RGBA8SN
-            {true, true, 4, 1, 1, 8, 8, 8, 8, 0, 0}, // RGBA8UI
-            {true, true, 4, 1, 1, 8, 8, 8, 8, 0, 0}, // RGBA8I
+            {true, true, 4, 1, 1, 8, 8, 8, 8, 0, 0, vk::Format::eR8G8B8A8Unorm}, // RGBA8
+            {true, true, 4, 1, 1, 8, 8, 8, 8, 0, 0, vk::Format::eR8G8B8A8Snorm}, // RGBA8SN
+            {true, true, 4, 1, 1, 8, 8, 8, 8, 0, 0, vk::Format::eR8G8B8A8Uint}, // RGBA8UI
+            {true, true, 4, 1, 1, 8, 8, 8, 8, 0, 0, vk::Format::eR8G8B8A8Sint}, // RGBA8I
             {true, true, 8, 1, 1, 16, 16, 16, 16, 0, 0}, // RGBA16F
             {true, true, 8, 1, 1, 16, 16, 16, 16, 0, 0}, // RGBA16
             {true, true, 8, 1, 1, 16, 16, 16, 16, 0, 0}, // RGBA16SN

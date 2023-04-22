@@ -115,6 +115,11 @@ android {
             manifestPlaceholders += [appLabel: "Skyline"]
         }
 
+        edge {
+            dimension = "version"
+            manifestPlaceholders = [appLabel: "Skyline Edge"]
+        }
+
         dev {
             dimension = "version"
             applicationIdSuffix = ".dev"

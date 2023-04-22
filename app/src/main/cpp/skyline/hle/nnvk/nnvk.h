@@ -13,6 +13,8 @@
 #include "sampler_pool.h"
 #include "texture_pool.h"
 #include "texture.h"
+#include "sampler.h"
+#include "queue.h"
 
 #define NNVK_CONTEXT_WRAP_TRIVIAL_0(return_type, type, method) \
     return_type Context::type ## method(type *name) { \
@@ -91,7 +93,7 @@ namespace nnvk {
 
         void DeviceSetDepthMode(Device *device, DepthMode mode);
 
-        bool DeviceRegisterFastClearColor(Device *device, const float *color, Format format);
+        bool DeviceRegisterFastClearColor(Device *device, const f32 *color, Format format);
 
         bool DeviceRegisterFastClearColori(Device *device, const i32 *color, Format format);
 
@@ -350,5 +352,147 @@ namespace nnvk {
         bool TextureCompare(Texture *texture, const Texture *texture2);
 
         u64 TextureGetDebugID(Texture *texture);
+
+        void SamplerBuilderSetDefaults(SamplerBuilder *builder);
+
+        void SamplerBuilderSetDevice(SamplerBuilder *builder, const Device *device);
+
+        void SamplerBuilderSetMinMagFilter(SamplerBuilder *builder, MinFilter min, MagFilter mag);
+
+        void SamplerBuilderSetWrapMode(SamplerBuilder *builder, WrapMode s, WrapMode t, WrapMode r);
+
+        void SamplerBuilderSetLodClamp(SamplerBuilder *builder, f32 min, f32 max);
+
+        void SamplerBuilderSetLodBias(SamplerBuilder *builder, f32 bias);
+
+        void SamplerBuilderSetCompare(SamplerBuilder *builder, CompareMode mode, CompareFunc func);
+
+        void SamplerBuilderSetBorderColor(SamplerBuilder *builder, const f32 *borderColor);
+
+        void SamplerBuilderSetBorderColori(SamplerBuilder *builder, const i32 *borderColor);
+
+        void SamplerBuilderSetBorderColorui(SamplerBuilder *builder, const u32 *borderColor);
+
+        void SamplerBuilderSetMaxAnisotropy(SamplerBuilder *builder, f32 maxAniso);
+
+        void SamplerBuilderSetReductionFilter(SamplerBuilder *builder, SamplerReduction filter);
+
+        void SamplerBuilderSetLodSnap(SamplerBuilder *builder, f32 f);
+
+        const Device *SamplerBuilderGetDevice(SamplerBuilder *builder);
+
+        void SamplerBuilderGetMinMagFilter(SamplerBuilder *builder, MinFilter *min, MagFilter *mag);
+
+        void SamplerBuilderGetWrapMode(SamplerBuilder *builder, WrapMode *s, WrapMode *t, WrapMode *r);
+
+        void SamplerBuilderGetLodClamp(SamplerBuilder *builder, f32 *min, f32 *max);
+
+        f32 SamplerBuilderGetLodBias(SamplerBuilder *builder);
+
+        void SamplerBuilderGetCompare(SamplerBuilder *builder, CompareMode *mode, CompareFunc *func);
+
+        void SamplerBuilderGetBorderColor(SamplerBuilder *builder, f32 *borderColor);
+
+        void SamplerBuilderGetBorderColori(SamplerBuilder *builder, i32 *borderColor);
+
+        void SamplerBuilderGetBorderColorui(SamplerBuilder *builder, u32 *borderColor);
+
+        f32 SamplerBuilderGetMaxAnisotropy(SamplerBuilder *builder);
+
+        SamplerReduction SamplerBuilderGetReductionFilter(SamplerBuilder *builder);
+
+        f32 SamplerBuilderGetLodSnap(SamplerBuilder *builder);
+
+        bool SamplerInitialize(Sampler *sampler, const SamplerBuilder *builder);
+
+        void SamplerFinalize(Sampler *sampler);
+
+        void SamplerSetDebugLabel(Sampler *sampler, const char *label);
+
+        void SamplerGetMinMagFilter(Sampler *sampler, MinFilter *min, MagFilter *mag);
+
+        void SamplerGetWrapMode(Sampler *sampler, WrapMode *s, WrapMode *t, WrapMode *r);
+
+        void SamplerGetLodClamp(Sampler *sampler, f32 *min, f32 *max);
+
+        f32 SamplerGetLodBias(Sampler *sampler);
+
+        void SamplerGetCompare(Sampler *sampler, CompareMode *mode, CompareFunc *func);
+
+        void SamplerGetBorderColor(Sampler *sampler, f32 *borderColor);
+
+        void SamplerGetBorderColori(Sampler *sampler, i32 *borderColor);
+
+        void SamplerGetBorderColorui(Sampler *sampler, u32 *borderColor);
+
+        f32 SamplerGetMaxAnisotropy(Sampler *sampler);
+
+        SamplerReduction SamplerGetReductionFilter(Sampler *sampler);
+
+        bool SamplerCompare(Sampler *sampler, const Sampler *sampler2);
+
+        u64 SamplerGetDebugID(Sampler *sampler);
+
+        void QueueBuilderSetDefaults(QueueBuilder *builder);
+
+        void QueueBuilderSetDevice(QueueBuilder *builder, Device *device);
+
+        void QueueBuilderSetFlags(QueueBuilder *builder, QueueFlags flags);
+
+        void QueueBuilderSetCommandMemorySize(QueueBuilder *builder, u64 size);
+
+        void QueueBuilderSetComputeMemorySize(QueueBuilder *builder, u64 size);
+
+        void QueueBuilderSetControlMemorySize(QueueBuilder *builder, u64 size);
+
+        u64 QueueBuilderGetQueueMemorySize(QueueBuilder *builder);
+
+        void QueueBuilderSetQueueMemory(QueueBuilder *builder, void *memory, u64 size);
+
+        void QueueBuilderSetCommandFlushThreshold(QueueBuilder *builder, u64 threshold);
+
+        const Device *QueueBuilderGetDevice(QueueBuilder *builder);
+
+        QueueFlags QueueBuilderGetFlags(QueueBuilder *builder);
+
+        bool QueueBuilderGetCommandMemorySize(QueueBuilder *builder, i32 *i);
+
+        bool QueueBuilderGetComputeMemorySize(QueueBuilder *builder, i32 *i);
+
+        bool QueueBuilderGetControlMemorySize(QueueBuilder *builder, i32 *i);
+
+        bool QueueBuilderGetCommandFlushThreshold(QueueBuilder *builder, i32 *i);
+
+        int QueueBuilderGetMemorySize(QueueBuilder *builder);
+
+        void *QueueBuilderGetMemory(QueueBuilder *builder);
+
+        bool QueueInitialize(Queue *queue, const QueueBuilder *builder);
+
+        void QueueFinalize(Queue *queue);
+
+        QueueGetErrorResult QueueGetError(Queue *queue, QueueErrorInfo *errorInfo);
+
+        u64 QueueGetTotalCommandMemoryUsed(Queue *queue);
+
+        u64 QueueGetTotalControlMemoryUsed(Queue *queue);
+
+        u64 QueueGetTotalComputeMemoryUsed(Queue *queue);
+
+        void QueueResetMemoryUsageCounts(Queue *queue);
+
+        void QueueSetDebugLabel(Queue *queue, const char *label);
+
+        void QueueSubmitCommands(Queue *queue, i32 numCommands, const CommandHandle *handles);
+
+        void QueueFlush(Queue *queue);
+
+        void QueueFinish(Queue *queue);
+
+        void QueuePresentTexture(Queue *queue, Window *window, i32 *textureIndex);
+
+        void QueueFenceSync(Queue *queue, Sync *sync, SyncCondition condition, SyncFlags flags);
+
+        bool QueueWaitSync(Queue *queue, Sync *sync);
     };
 }

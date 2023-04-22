@@ -16,24 +16,39 @@ namespace nnvk::vkcore {
             vk::throwResultException(vk::Result(result), function);
     }
 
+    std::span<u8> MemoryAllocation::data() {
+        if (!mapping.empty()) [[likely]]
+            return mapping;
+
+        VmaAllocationInfo allocationInfo{};
+        vmaGetAllocationInfo(vmaAllocator, vmaAllocation, &allocationInfo);
+
+        void *pointer;
+        ThrowOnFail(vmaMapMemory(vmaAllocator, vmaAllocation, &pointer));
+        mapping = std::span(reinterpret_cast<u8 *>(pointer), allocationInfo.size);
+        return mapping;
+    }
+
+    MemoryAllocation::~MemoryAllocation() {
+        if (!mapping.empty())
+            vmaUnmapMemory(vmaAllocator, vmaAllocation);
+
+        if (vmaAllocation)
+            vmaFreeMemory(vmaAllocator, vmaAllocation);
+    }
+
     Buffer::~Buffer() {
-        if (vmaAllocator && vmaAllocation && vkBuffer)
-            vmaDestroyBuffer(vmaAllocator, vkBuffer, vmaAllocation);
+        if (vkBuffer)
+            (*vkDevice).destroy(vkBuffer, nullptr, *vkDevice.getDispatcher());
     }
 
     Image::~Image() {
-        if (vmaAllocator && vmaAllocation && vkImage) {
-            if (pointer)
-                vmaUnmapMemory(vmaAllocator, vmaAllocation);
-            vmaDestroyImage(vmaAllocator, vkImage, vmaAllocation);
-        }
+        if (vkImage)
+            (*vkDevice).destroy(vkImage, nullptr, *vkDevice.getDispatcher());
     }
 
-    u8 *Image::data() {
-        if (pointer) [[likely]]
-            return pointer;
-        ThrowOnFail(vmaMapMemory(vmaAllocator, vmaAllocation, reinterpret_cast<void **>(&pointer)));
-        return pointer;
+    std::span<u8> Image::data() {
+        return allocation.data();
     }
 
     MemoryManager::MemoryManager(VkCore &core) : core{core} {
@@ -77,27 +92,6 @@ namespace nnvk::vkcore {
         vmaDestroyAllocator(vmaAllocator);
     }
 
-    std::shared_ptr<StagingBuffer> MemoryManager::AllocateStagingBuffer(vk::DeviceSize size) {
-        vk::BufferCreateInfo bufferCreateInfo{
-            .size = size,
-            .usage = vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
-            .sharingMode = vk::SharingMode::eExclusive,
-            .queueFamilyIndexCount = 1,
-            .pQueueFamilyIndices = &core.queueFamilyIndex,
-        };
-        VmaAllocationCreateInfo allocationCreateInfo{
-            .flags = VMA_ALLOCATION_CREATE_MAPPED_BIT,
-            .usage = VMA_MEMORY_USAGE_CPU_ONLY,
-        };
-
-        VkBuffer buffer;
-        VmaAllocation allocation;
-        VmaAllocationInfo allocationInfo;
-        ThrowOnFail(vmaCreateBuffer(vmaAllocator, &static_cast<const VkBufferCreateInfo &>(bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo));
-
-        return std::make_shared<StagingBuffer>(reinterpret_cast<u8 *>(allocationInfo.pMappedData), size, vmaAllocator, buffer, allocation);
-    }
-
     Buffer MemoryManager::AllocateBuffer(vk::DeviceSize size) {
         vk::BufferCreateInfo bufferCreateInfo{
             .size = size,
@@ -114,10 +108,24 @@ namespace nnvk::vkcore {
 
         VkBuffer buffer;
         VmaAllocation allocation;
-        VmaAllocationInfo allocationInfo;
-        ThrowOnFail(vmaCreateBuffer(vmaAllocator, &static_cast<const VkBufferCreateInfo &>(bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo));
+        ThrowOnFail(vmaCreateBuffer(vmaAllocator, &static_cast<const VkBufferCreateInfo &>(bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, nullptr));
 
-        return Buffer(reinterpret_cast<u8 *>(allocationInfo.pMappedData), size, vmaAllocator, buffer, allocation);
+        return Buffer{MemoryAllocation{vmaAllocator, allocation}, core.device, buffer};
+    }
+
+    MemoryAllocation MemoryManager::AllocateImageMemory(const vk::ImageCreateInfo &createInfo) {
+        VmaAllocationCreateInfo allocationCreateInfo{
+            .usage = VMA_MEMORY_USAGE_GPU_ONLY,
+        };
+
+
+        VkImage image;
+        VmaAllocation allocation;
+        ThrowOnFail(vmaCreateImage(vmaAllocator, &static_cast<const VkImageCreateInfo &>(createInfo), &allocationCreateInfo, &image, &allocation, nullptr));
+
+        (*core.device).destroy(image, nullptr, *core.device.getDispatcher());
+
+        return MemoryAllocation{vmaAllocator, allocation};
     }
 
     Image MemoryManager::AllocateImage(const vk::ImageCreateInfo &createInfo) {
@@ -127,10 +135,9 @@ namespace nnvk::vkcore {
 
         VkImage image;
         VmaAllocation allocation;
-        VmaAllocationInfo allocationInfo;
-        ThrowOnFail(vmaCreateImage(vmaAllocator, &static_cast<const VkImageCreateInfo &>(createInfo), &allocationCreateInfo, &image, &allocation, &allocationInfo));
+        ThrowOnFail(vmaCreateImage(vmaAllocator, &static_cast<const VkImageCreateInfo &>(createInfo), &allocationCreateInfo, &image, &allocation, nullptr));
 
-        return Image(vmaAllocator, image, allocation);
+        return Image{MemoryAllocation{vmaAllocator,  allocation}, core.device, image};
     }
 
     Image MemoryManager::AllocateMappedImage(const vk::ImageCreateInfo &createInfo) {
@@ -144,7 +151,7 @@ namespace nnvk::vkcore {
         VmaAllocationInfo allocationInfo;
         ThrowOnFail(vmaCreateImage(vmaAllocator, &static_cast<const VkImageCreateInfo &>(createInfo), &allocationCreateInfo, &image, &allocation, &allocationInfo));
 
-        return Image(vmaAllocator, image, allocation);
+        return Image{MemoryAllocation{vmaAllocator,  allocation}, core.device, image};
     }
 
     ImportedBuffer MemoryManager::ImportBuffer(std::span<u8> cpuMapping) {
@@ -176,4 +183,22 @@ namespace nnvk::vkcore {
 
         return ImportedBuffer{std::move(buffer), std::move(memory), cpuMapping};
     }
+
+    vk::raii::Buffer MemoryManager::CreateAliasingBuffer(vk::DeviceMemory deviceMemory, vk::DeviceSize offset, vk::DeviceSize size) {
+        auto buffer{core.device.createBuffer(vk::BufferCreateInfo{
+            .size = size,
+            .usage = vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformTexelBuffer | vk::BufferUsageFlagBits::eStorageTexelBuffer | vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndirectBuffer | vk::BufferUsageFlagBits::eTransformFeedbackBufferEXT,
+            .sharingMode = vk::SharingMode::eExclusive,
+            .queueFamilyIndexCount = 0,
+        })};
+
+        core.device.bindBufferMemory2({vk::BindBufferMemoryInfo{
+            .buffer = *buffer,
+            .memory = deviceMemory,
+            .memoryOffset = offset
+        }});
+
+        return buffer;
+    }
+
 }

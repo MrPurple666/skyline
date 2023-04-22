@@ -1,6 +1,9 @@
 #include <new>
 #include <stdexcept>
 #include "nnvk.h"
+#include "types.h"
+#include "versioning.h"
+#include "logging.h"
 #include "sampler_pool.h"
 
 namespace nnvk {
@@ -16,11 +19,11 @@ namespace nnvk {
     }
 
     void SamplerPool::RegisterSampler(i32 id, const Sampler *sampler) {
-        throw std::runtime_error("SamplerPool::RegisterSampler is not implemented");
+        Logger::Error("SamplerPool::RegisterSampler is not implemented");
     }
 
     void SamplerPool::RegisterSamplerBuilder(i32 id, const SamplerBuilder *builder) {
-        throw std::runtime_error("SamplerPool::RegisterSamplerBuilder is not implemented");
+        Logger::Error("SamplerPool::RegisterSamplerBuilder is not implemented");
     }
 
     const MemoryPool *SamplerPool::GetMemoryPool() const {

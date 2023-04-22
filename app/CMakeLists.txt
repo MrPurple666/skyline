@@ -258,10 +258,15 @@ add_library(skyline SHARED
         ${source_DIR}/skyline/hle/nnvk/memory_pool.cpp
         ${source_DIR}/skyline/hle/nnvk/sampler_pool.cpp
         ${source_DIR}/skyline/hle/nnvk/texture_pool.cpp
+        ${source_DIR}/skyline/hle/nnvk/texture.cpp
+        ${source_DIR}/skyline/hle/nnvk/sampler.cpp
+        ${source_DIR}/skyline/hle/nnvk/queue.cpp
         ${source_DIR}/skyline/hle/nnvk/trait_manager.cpp
         ${source_DIR}/skyline/hle/nnvk/memory_manager.cpp
         ${source_DIR}/skyline/hle/nnvk/vkcore.cpp
         ${source_DIR}/skyline/hle/nnvk/context.cpp
+        ${source_DIR}/skyline/hle/nnvk/format.cpp
+        ${source_DIR}/skyline/hle/nnvk/layout.cpp
         ${source_DIR}/skyline/vfs/partition_filesystem.cpp
         ${source_DIR}/skyline/vfs/ctr_encrypted_backing.cpp
         ${source_DIR}/skyline/vfs/rom_filesystem.cpp
