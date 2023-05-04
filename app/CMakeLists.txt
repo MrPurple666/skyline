@@ -261,6 +261,12 @@ add_library(skyline SHARED
         ${source_DIR}/skyline/hle/nnvk/texture.cpp
         ${source_DIR}/skyline/hle/nnvk/sampler.cpp
         ${source_DIR}/skyline/hle/nnvk/queue.cpp
+        ${source_DIR}/skyline/hle/nnvk/window.cpp
+        ${source_DIR}/skyline/hle/nnvk/buffer.cpp
+        ${source_DIR}/skyline/hle/nnvk/sync.cpp
+        ${source_DIR}/skyline/hle/nnvk/command_buffer.cpp
+        ${source_DIR}/skyline/hle/nnvk/program.cpp
+        ${source_DIR}/skyline/hle/nnvk/command_scheduler.cpp
         ${source_DIR}/skyline/hle/nnvk/trait_manager.cpp
         ${source_DIR}/skyline/hle/nnvk/memory_manager.cpp
         ${source_DIR}/skyline/hle/nnvk/vkcore.cpp

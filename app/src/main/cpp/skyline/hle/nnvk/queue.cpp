@@ -1,10 +1,14 @@
 #include <new>
 #include <stdexcept>
+#include <memory>
 #include <fmt/format.h>
 #include "logging.h"
 #include "memory_manager.h"
 #include "nnvk.h"
+#include "vkcore.h"
 #include "types.h"
+#include "sync.h"
+#include "window.h"
 #include "queue.h"
 
 namespace nnvk {
@@ -100,7 +104,13 @@ namespace nnvk {
     NNVK_CONTEXT_WRAP_TRIVIAL_0(void *, QueueBuilder, GetMemory)
     /* End wrappers */
 
-    Queue::Queue(ApiVersion version, const QueueBuilder &builder) {
+    u64 Queue::IncrQueueTimeline() {
+        u64 oldValue{maxQueueTimelineValue};
+        maxQueueTimelineValue = device->vkCore.scheduler.IncrTimeline();
+        return oldValue;
+    }
+
+    Queue::Queue(ApiVersion version, const QueueBuilder &builder) : device{builder.device} {
         NNVK_FILL_VERSIONED_STRUCT(Queue);
     }
 
@@ -135,23 +145,77 @@ namespace nnvk {
     }
 
     void Queue::Flush() {
-        throw std::runtime_error("Flush is unimplemented");
+        device->vkCore.scheduler.Flush();
     }
 
     void Queue::Finish() {
         throw std::runtime_error("Finish is unimplemented");
     }
 
-    void Queue::PresentTexture(Window *window, int *textureIndex) {
-        throw std::runtime_error("PresentTexture is unimplemented");
+    void Queue::PresentTexture(Window *window, i32 *textureIndex) {
+        auto semaphore{std::make_unique<vkcore::BinarySemaphore>(device->vkCore.device.createSemaphore({}))};
+
+        device->vkCore.scheduler.GenAndQueueOperation([&]() -> vkcore::CommandScheduler::Operation {
+            return vkcore::CommandScheduler::SyncOperation{
+                .waitTimelineValue = maxQueueTimelineValue,
+                .waitStageMask = vk::PipelineStageFlagBits2KHR::eAllCommands,
+                .signalStageMask = vk::PipelineStageFlagBits2KHR::eAllCommands,
+                .signalBinarySemaphore = semaphore.get(),
+            };
+        });
+
+        Logger::Error("INDEX {}", *textureIndex); // may be wrong
+        window->PresentTexture(std::move(semaphore), *textureIndex);
+    }
+
+    QueueAcquireTextureResult Queue::AcquireTexture(Window *window, i32 *textureIndex) {
+        SyncInternalHolder textureAvailableSync{device};
+
+        auto result{window->AcquireTexture(&*textureAvailableSync, textureIndex) == WindowAcquireTextureResult::Success ?
+                QueueAcquireTextureResult::Success : QueueAcquireTextureResult::NativeError};
+
+        if (result == QueueAcquireTextureResult::Success) // If we succeeded, all further queue operations need to block until the texture is available
+            maxQueueTimelineValue = textureAvailableSync->timelineValue;
+
+        return result;
     }
 
     void Queue::FenceSync(Sync *sync, SyncCondition condition, SyncFlags flags) {
-        throw std::runtime_error("FenceSync is unimplemented");
+        device->vkCore.scheduler.GenAndQueueOperation([&]() -> vkcore::CommandScheduler::Operation {
+            u64 waitTimelineValue{IncrQueueTimeline()};
+            sync->Fence(maxQueueTimelineValue);
+
+            return vkcore::CommandScheduler::SyncOperation{
+                .waitTimelineValue = waitTimelineValue,
+                .signalTimelineValue = maxQueueTimelineValue, // VERIFT BELOW
+                .waitStageMask = condition == SyncCondition::AllGpuCommandsComplete ? vk::PipelineStageFlagBits2KHR::eAllCommands : vk::PipelineStageFlagBits2KHR::eAllGraphics,
+                .signalStageMask = vk::PipelineStageFlagBits2KHR::eAllCommands,
+            };
+        });
     }
 
     bool Queue::WaitSync(Sync *sync) {
-        throw std::runtime_error("WaitSync is unimplemented");
+        Logger::Error("CHECK RETURN VAL");
+        if (!sync->Waiting())
+            return false;
+
+        // If the queue is ahead of what the sync would wait for, we can just return
+        if (sync->timelineValue <= maxQueueTimelineValue)
+            return false;
+
+        device->vkCore.scheduler.GenAndQueueOperation([&]() -> vkcore::CommandScheduler::Operation {
+            // Otherwise, all further queue operations must wait for the sync to complete
+            IncrQueueTimeline();
+
+            return vkcore::CommandScheduler::SyncOperation{
+                .waitTimelineValue = sync->timelineValue,
+                .signalTimelineValue = maxQueueTimelineValue,
+                .waitStageMask = vk::PipelineStageFlagBits2KHR::eAllCommands,
+                .signalStageMask = vk::PipelineStageFlagBits2KHR::eAllCommands,
+            };
+        });
+
+        return true;
     }
 
     /* Wrappers */
@@ -174,6 +238,7 @@ namespace nnvk {
     NNVK_CONTEXT_WRAP_TRIVIAL_0(void, Queue, Flush)
     NNVK_CONTEXT_WRAP_TRIVIAL_0(void, Queue, Finish)
     NNVK_CONTEXT_WRAP_TRIVIAL_2(void, Queue, PresentTexture, Window *, i32 *)
+    NNVK_CONTEXT_WRAP_TRIVIAL_2(QueueAcquireTextureResult, Queue, AcquireTexture, Window *, i32 *)
     NNVK_CONTEXT_WRAP_TRIVIAL_3(void, Queue, FenceSync, Sync *, SyncCondition, SyncFlags)
     NNVK_CONTEXT_WRAP_TRIVIAL_1(bool, Queue, WaitSync, Sync *)
     /* End wrappers */

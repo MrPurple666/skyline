@@ -6,6 +6,7 @@
 #include "types.h"
 #include "trait_manager.h"
 #include "memory_manager.h"
+#include "command_scheduler.h"
 
 namespace nnvk {
     struct VkCore {
@@ -20,6 +21,7 @@ namespace nnvk {
         std::mutex queueMutex; //!< Synchronizes access to the queue as it is externally synchronized
         vk::raii::Queue queue; //!< A Vulkan Queue supporting graphics and compute operations
         vkcore::MemoryManager memoryManager;
+        vkcore::CommandScheduler scheduler;
 
         VkCore(PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr, void *adrenotoolsImportHandle, vk::ApplicationInfo applicationInfo, bool enableValidation);
     };

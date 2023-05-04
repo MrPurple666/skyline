@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan_raii.hpp>
 #include "types.h"
 #include "vkcore.h"
 #include "memory_manager.h"
@@ -15,6 +15,11 @@
 #include "texture.h"
 #include "sampler.h"
 #include "queue.h"
+#include "window.h"
+#include "buffer.h"
+#include "sync.h"
+#include "command_buffer.h"
+#include "program.h"
 
 #define NNVK_CONTEXT_WRAP_TRIVIAL_0(return_type, type, method) \
     return_type Context::type ## method(type *name) { \
@@ -491,8 +496,146 @@ namespace nnvk {
 
         void QueuePresentTexture(Queue *queue, Window *window, i32 *textureIndex);
 
+        QueueAcquireTextureResult QueueAcquireTexture(Queue *queue, Window *window, i32 *textureIndex);
+
         void QueueFenceSync(Queue *queue, Sync *sync, SyncCondition condition, SyncFlags flags);
 
         bool QueueWaitSync(Queue *queue, Sync *sync);
+
+        void WindowBuilderSetDefaults(WindowBuilder *builder);
+
+        void WindowBuilderSetDevice(WindowBuilder *builder, Device *device);
+
+        void WindowBuilderSetNativeWindow(WindowBuilder *builder, NativeWindow nativeWindow);
+
+        void WindowBuilderSetTextures(WindowBuilder *builder, i32 count, Texture *pTextures[]);
+
+        void WindowBuilderSetPresentInterval(WindowBuilder *builder, i32 presentInterval);
+
+        void WindowBuilderSetNumActiveTextures(WindowBuilder *builder, i32 numActiveTextures);
+
+        i32 WindowBuilderGetNumActiveTextures(WindowBuilder *builder);
+
+        const Device *WindowBuilderGetDevice(WindowBuilder *builder);
+
+        i32 WindowBuilderGetNumTextures(WindowBuilder *builder);
+
+        const Texture *WindowBuilderGetTexture(WindowBuilder *builder, i32 i);
+
+        NativeWindow WindowBuilderGetNativeWindow(WindowBuilder *builder);
+
+        i32 WindowBuilderGetPresentInterval(WindowBuilder *builder);
+
+        bool WindowInitialize(Window *window, const WindowBuilder *builder);
+
+        void WindowFinalize(Window *window);
+
+        void WindowSetDebugLabel(Window *window, const char *label);
+
+        WindowAcquireTextureResult WindowAcquireTexture(Window *window, Sync *textureAvailableSync, i32 *textureIndex);
+
+        NativeWindow WindowGetNativeWindow(Window *window);
+
+        i32 WindowGetPresentInterval(Window *window);
+
+        void WindowSetPresentInterval(Window *window, i32 presentInterval);
+
+        void WindowSetCrop(Window *window, i32 x, i32 y, i32 w, i32 h);
+
+        void WindowGetCrop(Window *window, Rectangle *rectangle);
+
+        void WindowSetNumActiveTextures(Window *window, i32 numActiveTextures);
+
+        i32 WindowGetNumActiveTextures(Window *window);
+
+        i32 WindowGetNumTextures(Window *window);
+
+        void BufferBuilderSetDefaults(BufferBuilder *builder);
+
+        void BufferBuilderSetDevice(BufferBuilder *builder, Device *device);
+
+        void BufferBuilderSetStorage(BufferBuilder *builder, MemoryPool *pool, i64 offset, u64 size);
+
+        const Device *BufferBuilderGetDevice(BufferBuilder *builder);
+
+        const MemoryPool *BufferBuilderGetMemoryPool(BufferBuilder *builder);
+
+        i64 BufferBuilderGetMemoryOffset(BufferBuilder *builder);
+
+        u64 BufferBuilderGetSize(BufferBuilder *builder);
+
+        bool BufferInitialize(Buffer *buffer, const BufferBuilder *builder);
+
+        void BufferFinalize(Buffer *buffer);
+
+        void BufferSetDebugLabel(Buffer *buffer, const char *label);
+
+        void *BufferMap(Buffer *buffer);
+
+        BufferAddress BufferGetAddress(Buffer *buffer);
+
+        void BufferFlushMappedRange(Buffer *buffer, i64 offset, u64 size);
+
+        void BufferInvalidateMappedRange(Buffer *buffer, i64 offset, u64 size);
+
+        MemoryPool *BufferGetMemoryPool(Buffer *buffer);
+
+        i64 BufferGetMemoryOffset(Buffer *buffer);
+
+        u64 BufferGetSize(Buffer *buffer);
+
+        u64 BufferGetDebugID(Buffer *buffer);
+
+        bool SyncInitialize(Sync *sync, Device *device);
+
+        void SyncFinalize(Sync *sync);
+
+        void SyncSetDebugLabel(Sync *sync, const char *label);
+
+        SyncWaitResult SyncWait(Sync *sync, u64 timeout);
+
+        bool CommandBufferInitialize(CommandBuffer *commandBuffer, Device *device);
+
+        void CommandBufferFinalize(CommandBuffer *commandBuffer);
+
+        void CommandBufferSetDebugLabel(CommandBuffer *commandBuffer, const char *label);
+
+        void CommandBufferSetMemoryCallback(CommandBuffer *commandBuffer, void *callback);
+
+        void CommandBufferSetMemoryCallbackData(CommandBuffer *commandBuffer, void *callbackData);
+
+        void CommandBufferAddCommandMemory(CommandBuffer *commandBuffer, const MemoryPool *pool, i64 offset, u64 size);
+
+        void CommandBufferAddControlMemory(CommandBuffer *commandBuffer, void *memory, u64 size);
+
+        u64 CommandBufferGetCommandMemorySize(CommandBuffer *commandBuffer);
+
+        u64 CommandBufferGetCommandMemoryUsed(CommandBuffer *commandBuffer);
+
+        u64 CommandBufferGetCommandMemoryFree(CommandBuffer *commandBuffer);
+
+        u64 CommandBufferGetControlMemorySize(CommandBuffer *commandBuffer);
+
+        u64 CommandBufferGetControlMemoryUsed(CommandBuffer *commandBuffer);
+
+        u64 CommandBufferGetControlMemoryFree(CommandBuffer *commandBuffer);
+
+        void CommandBufferBeginRecording(CommandBuffer *commandBuffer);
+
+        CommandHandle CommandBufferEndRecording(CommandBuffer *commandBuffer);
+
+        void *CommandBufferGetMemoryCallback(CommandBuffer *commandBuffer);
+
+        void *CommandBufferGetMemoryCallbackData(CommandBuffer *commandBuffer);
+
+        bool ProgramInitialize(Program *program, Device *device);
+
+        void ProgramFinalize(Program *program);
+
+        void ProgramSetDebugLabel(Program *program, const char *label);
+
+        bool ProgramSetShaders(Program *program, i32 count, const ShaderData *stageData);
+
+        bool ProgramSetSubroutineLinkage(Program *program, i32 i, const SubroutineLinkageMapPtr *ptr);
     };
 }

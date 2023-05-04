@@ -4,6 +4,7 @@
 #pragma once
 
 #include <vulkan/vulkan_raii.hpp>
+#include <optional>
 #include "memory_manager.h"
 #include "types.h"
 #include "versioning.h"
@@ -36,8 +37,8 @@ namespace nnvk {
       private:
         friend MemoryPool;
 
-        Device *device{};
-        std::span<u8> storage;
+        Device *device;
+        std::span<u8> storage{};
         MemoryPoolFlags flags{};
         u32 _pad_{};
 
@@ -61,19 +62,27 @@ namespace nnvk {
     NNVK_VERSIONED_STRUCT(MemoryPoolBuilder, 0x40);
 
     using BufferAddress = u64;
-    using MappingRequest = void *;
+
+    struct MappingRequest {
+        MemoryPool *srcPool;
+        u64 srcOffset;
+        BufferAddress gpuAddr;
+        u64 size;
+        StorageClass storageClass;
+    };
 
     class MemoryPool {
       private:
         friend texture::VirtualTexture;
 
         const char *debugLabel{};
+        Device *device;
         MemoryPoolFlags flags;
-        VkCore &vkCore;
-        vkcore::ImportedBuffer buffer;
+        std::optional<vkcore::ImportedBuffer> buffer;
+        u64 bufferSize;
 
       public:
-        MemoryPool(ApiVersion version, VkCore &vkCore, const MemoryPoolBuilder &builder);
+        MemoryPool(ApiVersion version, const MemoryPoolBuilder &builder);
 
         ~MemoryPool();
 
@@ -81,9 +90,9 @@ namespace nnvk {
 
         void *Map() const;
 
-        void FlushMappedRange(ptrdiff_t offset, u64 size) const;
+        void FlushMappedRange(i64 offset, u64 size) const;
 
-        void InvalidateMappedRange(ptrdiff_t offset, u64 size) const;
+        void InvalidateMappedRange(i64 offset, u64 size) const;
 
         BufferAddress GetBufferAddress() const;
 

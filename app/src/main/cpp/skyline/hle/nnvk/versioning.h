@@ -14,7 +14,18 @@
             return internal::MapApiVersionToSize<__VA_ARGS__>(version); \
         } \
         _Pragma("clang diagnostic pop")  \
-        static_assert(sizeof(type) <= VersionedSize<type>(ApiVersion(0, 0)), "Versioned struct is too small");
+        static_assert(sizeof(type) <= VersionedSize<type>(ApiVersion(0, 0)), "Versioned struct is too small"); \
+        union type##InternalHolder {     \
+            type value; \
+            u8 storage[VersionedSize<type>(ApiVersion(0, 0))];         \
+            template<typename... Args>   \
+            type##InternalHolder(Args &&... args) : value(ApiVersion(0, 0), std::forward<Args>(args)...) {}    \
+            ~type##InternalHolder() { value.~type(); }                 \
+            type *operator->() { return &value; }                         \
+            type &operator*() { return value; }                          \
+        };
+
+
 
 #define NNVK_FILL_VERSIONED_STRUCT(type) \
         std::memset(this + 1, 0, VersionedSize<type>(version) - sizeof(type));

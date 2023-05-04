@@ -104,7 +104,9 @@ namespace nnvk::vkcore {
             vk::PhysicalDeviceIndexTypeUint8FeaturesEXT,
             vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
             vk::PhysicalDeviceRobustness2FeaturesEXT,
-            vk::PhysicalDeviceBufferDeviceAddressFeaturesKHR>;
+            vk::PhysicalDeviceBufferDeviceAddressFeatures,
+            vk::PhysicalDeviceTimelineSemaphoreFeaturesKHR,
+            vk::PhysicalDeviceSynchronization2FeaturesKHR>;
 
         TraitManager(const DeviceFeatures2 &deviceFeatures2, DeviceFeatures2 &enabledFeatures2, const std::vector<vk::ExtensionProperties> &deviceExtensions, std::vector<std::array<char, VK_MAX_EXTENSION_NAME_SIZE>> &enabledExtensions, const DeviceProperties2 &deviceProperties2, const vk::raii::PhysicalDevice &physicalDevice);
 

@@ -67,6 +67,8 @@ namespace nnvk::vkcore {
                 EXT_SET_COND("VK_EXT_extended_dynamic_state", hasExtendedDynamicStateExt, !quirks.brokenDynamicStateVertexBindings);
                 EXT_SET("VK_EXT_robustness2", hasRobustness2Ext);
                 EXT_SET("VK_KHR_buffer_device_address", hasBufferDeviceAddressExt);
+                EXT_SET("VK_KHR_timeline_semaphore", std::ignore);
+                EXT_SET("VK_KHR_synchronization2", std::ignore);
             }
 
             #undef EXT_SET_COND

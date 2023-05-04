@@ -33,6 +33,7 @@ namespace nnvk {
         : enableDeferredFinalize{builder.flags.deferredFinalize},
           enableDeferredFirmwareMemoryReclaim{builder.flags.deferredFirmwareMemoryReclaim},
           enableSeperateSamplerTextureSupport{builder.flags.enableSeperateSamplerTextureSupport},
+          vkCore{vkCore},
           textureManager{vkCore} {
         NNVK_FILL_VERSIONED_STRUCT(Device);
     }

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <queue>
+#include <variant>
 #include "types.h"
 #include "versioning.h"
 #include "format.h"
@@ -155,7 +157,7 @@ namespace nnvk {
     using SeparateTextureHandle = u64;
 
     using DebugDomainId = i32;
-    using CommandHandle = u64;
+    using CommandHandle = void *;
 
     enum class WindowOriginMode : i32 {
         LowerLeft,
@@ -185,6 +187,13 @@ namespace nnvk {
 
     class Device {
       private:
+        friend class Texture;
+        friend class MemoryPool;
+        friend class Queue;
+        friend class Sync;
+        friend class Window;
+        friend class CommandBuffer;
+
         const char *debugLabel{};
         WindowOriginMode windowOriginMode{};
         DepthMode depthMode{};
@@ -193,9 +202,13 @@ namespace nnvk {
         bool enableDeferredFirmwareMemoryReclaim{};
         bool enableSeperateSamplerTextureSupport{};
 
-      public:
+        VkCore &vkCore;
         texture::VirtualTextureManager textureManager;
 
+
+
+
+      public:
         Device(ApiVersion version, const DeviceBuilder &builder, VkCore &vkCore);
 
         ~Device();

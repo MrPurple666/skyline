@@ -4,9 +4,12 @@
 #pragma once
 
 #include <span>
+
+#include <vulkan/vulkan_raii.hpp>
 #include "types.h"
 #include "versioning.h"
 #include "device.h"
+#include "sync.h"
 
 namespace nnvk {
     struct QueueFlags {
@@ -22,7 +25,7 @@ namespace nnvk {
       private:
         friend Queue;
 
-        Device *device{};
+        Device *device;
         QueueFlags flags{};
         u64 commandMemorySize{};
         u64 computeMemorySize{};
@@ -80,34 +83,18 @@ namespace nnvk {
 
     class Window;
 
-    class Sync;
-
-    enum class SyncCondition : i32 {
-        AllGpuCommandsComplete,
-        GraphicsWorldSpaceComplete,
-    };
-
-    enum class SyncWaitResult : i32 {
-        AlreadySignalled,
-        ConditionSatisfied,
-        TimeoutExpired,
-        Failed
-    };
-
     enum class QueueAcquireTextureResult : i32 {
         Success,
         NativeError
-    };
-
-    struct SyncFlags {
-        bool flushForCpu : 1;
-        u32 _pad_ : 31;
     };
 
     class Queue {
       private:
         const char *debugLabel{};
         Device *device;
+        u64 maxQueueTimelineValue{};
+
+        u64 IncrQueueTimeline();
 
       public:
         Queue(ApiVersion version, const QueueBuilder &builder);
@@ -133,6 +120,8 @@ namespace nnvk {
         void Finish();
 
         void PresentTexture(Window *window, i32 *textureIndex);
+
+        QueueAcquireTextureResult AcquireTexture(Window *window, i32 *textureIndex);
 
         void FenceSync(Sync *sync, SyncCondition condition, SyncFlags flags);
 

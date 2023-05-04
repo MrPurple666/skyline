@@ -240,7 +240,9 @@ namespace nnvk {
             vk::PhysicalDeviceIndexTypeUint8FeaturesEXT,
             vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
             vk::PhysicalDeviceRobustness2FeaturesEXT,
-            vk::PhysicalDeviceBufferDeviceAddressFeatures>()};
+            vk::PhysicalDeviceBufferDeviceAddressFeatures,
+            vk::PhysicalDeviceTimelineSemaphoreFeatures,
+            vk::PhysicalDeviceSynchronization2FeaturesKHR>()};
         decltype(deviceFeatures2) enabledFeatures2{}; // We only want to enable features we required due to potential overhead from unused features
 
         #define FEAT_REQ(structName, feature)                                            \
@@ -253,6 +255,8 @@ namespace nnvk {
         FEAT_REQ(vk::PhysicalDeviceFeatures2, features.shaderImageGatherExtended);
         FEAT_REQ(vk::PhysicalDeviceFeatures2, features.depthBiasClamp);
         FEAT_REQ(vk::PhysicalDeviceShaderDrawParametersFeatures, shaderDrawParameters);
+        FEAT_REQ(vk::PhysicalDeviceTimelineSemaphoreFeatures, timelineSemaphore);
+        FEAT_REQ(vk::PhysicalDeviceSynchronization2FeaturesKHR, synchronization2);
 
         #undef FEAT_REQ
 
@@ -336,5 +340,6 @@ namespace nnvk {
           physicalDevice{CreatePhysicalDevice(instance)},
           device{CreateDevice(context, physicalDevice, queueFamilyIndex, traitsManager, adrenotoolsImportHandle)},
           queue{device, queueFamilyIndex, 0},
-          memoryManager{*this} {}
+          memoryManager{*this},
+          scheduler{*this} {}
 }

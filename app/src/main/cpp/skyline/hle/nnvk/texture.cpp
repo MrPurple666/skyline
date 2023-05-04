@@ -548,30 +548,30 @@ namespace nnvk {
     //void GetSparseTileLayout(TextureSparseTileLayout *tileLayout) const;
     void Texture::WriteTexels(const TextureView *view, const CopyRegion *region,
                      const void *p) {
-        throw std::runtime_error("Texture::WriteTexels() is not implemented");
+        Logger::Error("Texture::WriteTexels() is not implemented");
     }
 
     void Texture::WriteTexelsStrided(const TextureView *view, const CopyRegion *region,
                                      const void *p, i64 o1, i64 o2) {
-        throw std::runtime_error("Texture::WriteTexelsStrided() is not implemented");
+        Logger::Error("Texture::WriteTexelsStrided() is not implemented");
     }
 
     void Texture::ReadTexels(const TextureView *view, const CopyRegion *region,
                              void *p) {
-        throw std::runtime_error("Texture::ReadTexels() is not implemented");
+        Logger::Error("Texture::ReadTexels() is not implemented");
     }
 
     void Texture::ReadTexelsStrided(const TextureView *view, const CopyRegion *region,
                                     void *p, i64 o1, i64 o2) {
-        throw std::runtime_error("Texture::ReadTexelsStrided() is not implemented");
+        Logger::Error("Texture::ReadTexelsStrided() is not implemented");
     }
 
     void Texture::FlushTexels(const TextureView *view, const CopyRegion *region) {
-        throw std::runtime_error("Texture::FlushTexels() is not implemented");
+        Logger::Error("Texture::FlushTexels() is not implemented");
     }
 
     void Texture::InvalidateTexels(const TextureView *view, const CopyRegion *region) {
-        throw std::runtime_error("Texture::InvalidateTexels() is not implemented");
+        Logger::Error("Texture::InvalidateTexels() is not implemented");
     }
 
     MemoryPool *Texture::GetMemoryPool() const {
@@ -587,7 +587,8 @@ namespace nnvk {
     }
 
     bool Texture::Compare(const Texture *texture) const {
-        throw std::runtime_error("Texture::Compare() is not implemented");
+        // TODO: may not check storages
+        return virtualTexture == texture->virtualTexture;
     }
 
     u64 Texture::GetDebugID() const {
@@ -732,7 +733,7 @@ namespace nnvk {
               size{builder.size},
               levels{builder.levels},
               format{builder.format},
-              samples{builder.samples},
+              samples{target == TextureTarget::Target2DMultisample || target == TextureTarget::Target2DMultisampleArray ? builder.samples : 1},
               stride{builder.stride},
               storageSize{builder.GetStorageSize()},
               storageClass{builder.GetStorageClass()},
@@ -742,7 +743,7 @@ namespace nnvk {
               tileDepth{builder.CalcTileDepth()},
               memoryPool{builder.memoryPool},
               memoryOffset{static_cast<u64>(builder.memoryOffset)},
-              memoryBuffer{vkCore.memoryManager.CreateAliasingBuffer(*memoryPool->buffer.vkMemory, memoryOffset, storageSize)} {
+              memoryBuffer{vkCore.memoryManager.CreateAliasingBuffer(*memoryPool->buffer.value().vkMemory, memoryOffset, storageSize)} {
             ReallocateMemory();
             Logger::Error("Impl {}", static_cast<u32>(format));
             // UPLOAD DATA PACKAGED

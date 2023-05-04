@@ -56,7 +56,7 @@ namespace nnvk::format {
             {true, false, 2, 1, 1, 0, 0, 0, 0, 16, 0}, // Depth16
             {true, false, 4, 1, 1, 0, 0, 0, 0, 24, 0}, // Depth24
             {true, false, 4, 1, 1, 0, 0, 0, 0, 32, 0}, // Depth32F
-            {true, false, 4, 1, 1, 0, 0, 0, 0, 24, 8}, // Depth24_Stencil8
+            {true, false, 4, 1, 1, 0, 0, 0, 0, 24, 8, vk::Format::eD24UnormS8Uint}, // Depth24_Stencil8
             {true, false, 8, 1, 1, 0, 0, 0, 0, 32, 8}, // Depth32F_Stencil8
             {true, false, 4, 1, 1, 8, 8, 8, 0, 0, 0}, // RGBX8_SRGB
             {true, false, 4, 1, 1, 8, 8, 8, 8, 0, 0}, // RGBA8_SRGB
