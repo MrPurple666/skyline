@@ -48,7 +48,8 @@ class ExportCustomSettingsPreference @JvmOverloads constructor(context : Context
                 - Docked: $systemIsDocked
                 
                 GPU
-                - Driver: $gpuDriver (executors: $gpuExecSlotCount slots, threshold of $gpuExecFlushThreshold)
+                - Driver: $gpuDriver
+                - Executors: $gpuExecSlotCount slots (threshold: $gpuExecFlushThreshold)
                 - Triple buffering: $gpuTripleBuffering, DMI: $gpuDMI
                 - Max clocks: $gpuForceMaxGpuClocks, free guest texture memory: $gpuFreeGuestTextureMemory
                 - Disable shader cache: $gpuDisableShaderCache
@@ -56,7 +57,7 @@ class ExportCustomSettingsPreference @JvmOverloads constructor(context : Context
                 HACKS
                 - Fast GPU readback: $hackFastGpuReadback, fast readback writes $hackFastReadbackWrite
                 - Disable GPU subgroup shuffle: $hackDisableSubgroupShuffle
-                """.trimIndent()
+                """.trimIndent().replace("true", "✔").replace("false", "✖")
             )
 
             MaterialAlertDialogBuilder(context)
