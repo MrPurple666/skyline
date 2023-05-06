@@ -37,42 +37,7 @@ class OnScreenEditActivity : AppCompatActivity() {
 
     private var currentButtonName = ""
 
-    private fun toggleFabVisibility(visible : Boolean) {
-        fabMapping.forEach { (id, fab) ->
-            if (id != R.drawable.ic_close) {
-                if (visible) fab.show()
-                else fab.hide()
-            }
-        }
-    }
-
-    private val editAction = {
-        editMode = true
-        binding.onScreenControllerView.setEditMode(true)
-        toggleFabVisibility(false)
-    }
-
-    private val toggleAction : () -> Unit = {
-        val buttonProps = binding.onScreenControllerView.getButtonProps()
-        val checkArray = buttonProps.map { it.second }.toBooleanArray()
-
-        MaterialAlertDialogBuilder(this)
-            .setMultiChoiceItems(buttonProps.map {
-                val longText = getString(it.first.long!!)
-                if (it.first.short == longText) longText else "$longText: ${it.first.short}"
-            }.toTypedArray(), checkArray) { _, which, isChecked ->
-                checkArray[which] = isChecked
-            }.setPositiveButton(R.string.confirm) { _, _ ->
-                buttonProps.forEachIndexed { index, pair ->
-                    if (checkArray[index] != pair.second)
-                        binding.onScreenControllerView.setButtonEnabled(pair.first, checkArray[index])
-                }
-            }.setNegativeButton(R.string.cancel, null)
-            .setOnDismissListener { fullScreen() }
-            .show()
-    }
-
-    private val paletteAction : () -> Unit = {
+    private fun paletteAction() {
         DoubleColorPicker(this@OnScreenEditActivity).apply {
             setTitle(this@OnScreenEditActivity.getString(R.string.osc_background_color))
             setDefaultColorButton(binding.onScreenControllerView.getButtonBackgroundColor())

@@ -349,11 +349,11 @@ class Controls(onScreenControllerView : OnScreenControllerView) {
     private val joystickRegions = listOf<JoystickButton>(
         JoystickRegion(
             onScreenControllerView, Left, 0.24f, 0.75f, 0.06f,
-            RectF(0f, 0f, 0.5f, 1f), SwitchColors.NEON_BLUE.color
+            RectF(0f, 0f, 0.5f, 1f), SwitchColors.C5.color
         ),
         JoystickRegion(
             onScreenControllerView, Right, 0.9f, 0.53f, 0.06f,
-            RectF(0.5f, 0f, 1f, 1f), SwitchColors.NEON_RED.color
+            RectF(0.5f, 0f, 1f, 1f), SwitchColors.C3.color
         ),
     )
 
