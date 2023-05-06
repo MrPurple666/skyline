@@ -346,6 +346,7 @@ add_library(skyline SHARED
         ${source_DIR}/skyline/services/fssrv/IStorage.cpp
         ${source_DIR}/skyline/services/fssrv/IDirectory.cpp
         ${source_DIR}/skyline/services/fssrv/IMultiCommitManager.cpp
+        ${source_DIR}/skyline/services/fssrv/ISaveDataInfoReader.cpp
         ${source_DIR}/skyline/services/nvdrv/INvDrvServices.cpp
         ${source_DIR}/skyline/services/nvdrv/driver.cpp
         ${source_DIR}/skyline/services/nvdrv/core/nvmap.cpp
@@ -404,6 +405,9 @@ add_library(skyline SHARED
         ${source_DIR}/skyline/services/mii/IDatabaseService.cpp
         ${source_DIR}/skyline/services/olsc/IOlscServiceForApplication.cpp
         ${source_DIR}/skyline/services/ntc/IEnsureNetworkClockAvailabilityService.cpp
+        ${source_DIR}/skyline/services/clkrst/IClkrstManager.cpp
+        ${source_DIR}/skyline/services/clkrst/IClkrstSession.cpp
+        ${source_DIR}/skyline/services/psm/IPsmServer.cpp
         )
 target_include_directories(skyline PRIVATE ${source_DIR}/skyline)
 # target_precompile_headers(skyline PRIVATE ${source_DIR}/skyline/common.h) # PCH will currently break Intellisense
