@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ purple-t2 ]
+    branches: [ purple-tf ]
   workflow_dispatch:
 
 jobs:
