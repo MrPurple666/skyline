@@ -59,6 +59,7 @@ import emu.skyline.utils.GpuDriverHelper
 import emu.skyline.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.FutureTask
@@ -166,6 +167,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     var fps : Int = 0
     var averageFrametime : Float = 0.0f
     var averageFrametimeDeviation : Float = 0.0f
+    var ramUsage : Float = 0.0f
 
     /**
      * Writes the current performance statistics into [fps], [averageFrametime] and [averageFrametimeDeviation] fields
@@ -338,6 +340,17 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
                         postDelayed(this, 250)
                     }
                 }, 250)
+            }
+
+            binding.ramStats.apply {
+                postDelayed(object : Runnable {
+                    override fun run() {
+                        updatePerformanceStatistics()
+                        ramUsage = File("/proc/self/statm").readLines()[0].split(' ')[1].toFloat() * 4096 / 1000000
+                        text = "%.1f MB".format(ramUsage)
+                        postDelayed(this, 250)
+                    }
+                },250)
             }
         }
 
