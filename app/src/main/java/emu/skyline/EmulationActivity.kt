@@ -368,6 +368,11 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
 
         binding.onScreenPauseToggle.apply {
             isGone = binding.onScreenControllerView.isGone
+            if(!emulationSettings.showPauseButton) {
+                binding.onScreenPauseToggle.visibility = View.GONE
+            } else {
+                binding.onScreenPauseToggle.visibility = View.VISIBLE
+            }
             setOnClickListener {
                 if (isEmulatorPaused) {
                     resumeEmulator()
@@ -497,7 +502,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
                 isGone = binding.onScreenControllerView.isGone
             }
             binding.onScreenPauseToggle.apply {
-                isGone = binding.onScreenControllerView.isGone
+                isGone = !emulationSettings.showPauseButton
             }
         }
     }

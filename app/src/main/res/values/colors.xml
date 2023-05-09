@@ -9,6 +9,7 @@
 
     <color name="colorPerfStatsPrimary">#C87AF1</color>
     <color name="colorPerfStatsSecondary">#7AF1E8</color>
+    <color name="colorRamUsage">#9F2FFF00</color>
 
     <color name="seed">#FF9369B7</color>
     <color name="md_theme_light_primary">#FF4F007F</color>
