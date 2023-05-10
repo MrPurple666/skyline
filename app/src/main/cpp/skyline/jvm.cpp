@@ -63,6 +63,7 @@ namespace skyline {
           waitForSubmitOrCancelId{environ->GetMethodID(instanceClass, "waitForSubmitOrCancel", "(Lemu/skyline/applet/swkbd/SoftwareKeyboardDialog;)[Ljava/lang/Object;")},
           closeKeyboardId{environ->GetMethodID(instanceClass, "closeKeyboard", "(Lemu/skyline/applet/swkbd/SoftwareKeyboardDialog;)V")},
           showValidationResultId{environ->GetMethodID(instanceClass, "showValidationResult", "(Lemu/skyline/applet/swkbd/SoftwareKeyboardDialog;ILjava/lang/String;)I")},
+          reportCrashId{environ->GetMethodID(instanceClass, "reportCrash", "()V")},
           getVersionCodeId{environ->GetMethodID(instanceClass, "getVersionCode", "()I")},
           getIntegerValueId{environ->GetMethodID(environ->FindClass("java/lang/Integer"), "intValue", "()I")},
           getDhcpInfoId{environ->GetMethodID(instanceClass, "getDhcpInfo", "()Landroid/net/DhcpInfo;")} {
@@ -165,4 +166,27 @@ namespace skyline {
         env->DeleteLocalRef(str);
         return result;
     }
+<<<<<<< HEAD
+=======
+
+    void JvmManager::reportCrash() {
+        env->CallVoidMethod(instance, reportCrashId);
+    }
+
+    void JvmManager::ShowPipelineLoadingScreen(u32 totalPipelineCount) {
+        env->CallVoidMethod(instance, showPipelineLoadingScreenId, static_cast<jint>(totalPipelineCount));
+    }
+
+    void JvmManager::UpdatePipelineLoadingProgress(u32 progress) {
+        env->CallVoidMethod(instance, updatePipelineLoadingProgressId, static_cast<jint>(progress));
+    }
+
+    void JvmManager::HidePipelineLoadingScreen() {
+        env->CallVoidMethod(instance, hidePipelineLoadingScreenId);
+    }
+
+    i32 JvmManager::GetVersionCode() {
+        return env->CallIntMethod(instance, getVersionCodeId);
+    }
+>>>>>>> 4608b9d1 (Report crash in UI by setting FPS to red)
 }

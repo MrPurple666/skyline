@@ -185,6 +185,11 @@ namespace skyline {
         KeyboardCloseResult ShowValidationResult(KeyboardHandle dialog, KeyboardTextCheckResult checkResult, std::u16string message);
 
         /**
+         * @brief A call to EmulationActivity.reportCrash in Kotlin
+         */
+        void reportCrash();
+
+        /**
          * @brief A call to EmulationActivity.getVersionCode in Kotlin
          * @return A version code in Vulkan's format with 14-bit patch + 10-bit major and minor components
          */
@@ -203,6 +208,7 @@ namespace skyline {
         jmethodID waitForSubmitOrCancelId;
         jmethodID closeKeyboardId;
         jmethodID showValidationResultId;
+        jmethodID reportCrashId;
         jmethodID getVersionCodeId;
         jmethodID getDhcpInfoId;
 
