@@ -345,6 +345,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
             binding.ramStats.apply {
                 postDelayed(object : Runnable {
                     override fun run() {
+                        // We read the `VmRSS` value from the kernel
                         ramUsage = File("/proc/self/statm").readLines()[0].split(' ')[1].toFloat() * 4096 / 1000000
                         text = "%.1f MB".format(ramUsage)
                         postDelayed(this, 250)
