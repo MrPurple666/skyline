@@ -345,7 +345,6 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
             binding.ramStats.apply {
                 postDelayed(object : Runnable {
                     override fun run() {
-                        updatePerformanceStatistics()
                         ramUsage = File("/proc/self/statm").readLines()[0].split(' ')[1].toFloat() * 4096 / 1000000
                         text = "%.1f MB".format(ramUsage)
                         postDelayed(this, 250)
@@ -380,12 +379,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
         }
 
         binding.onScreenPauseToggle.apply {
-            isGone = binding.onScreenControllerView.isGone
-            if(!emulationSettings.showPauseButton) {
-                binding.onScreenPauseToggle.visibility = View.GONE
-            } else {
-                binding.onScreenPauseToggle.visibility = View.VISIBLE
-            }
+            isGone = !emulationSettings.showPauseButton
             setOnClickListener {
                 if (isEmulatorPaused) {
                     resumeEmulator()
