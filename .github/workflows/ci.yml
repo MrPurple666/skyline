@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ purple-tf ]
+    branches: [ pomodoro ]
   workflow_dispatch:
 
 jobs:
