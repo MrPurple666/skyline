@@ -166,27 +166,8 @@ namespace skyline {
         env->DeleteLocalRef(str);
         return result;
     }
-<<<<<<< HEAD
-=======
 
     void JvmManager::reportCrash() {
         env->CallVoidMethod(instance, reportCrashId);
     }
-
-    void JvmManager::ShowPipelineLoadingScreen(u32 totalPipelineCount) {
-        env->CallVoidMethod(instance, showPipelineLoadingScreenId, static_cast<jint>(totalPipelineCount));
-    }
-
-    void JvmManager::UpdatePipelineLoadingProgress(u32 progress) {
-        env->CallVoidMethod(instance, updatePipelineLoadingProgressId, static_cast<jint>(progress));
-    }
-
-    void JvmManager::HidePipelineLoadingScreen() {
-        env->CallVoidMethod(instance, hidePipelineLoadingScreenId);
-    }
-
-    i32 JvmManager::GetVersionCode() {
-        return env->CallIntMethod(instance, getVersionCodeId);
-    }
->>>>>>> 4608b9d1 (Report crash in UI by setting FPS to red)
 }
