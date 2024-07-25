@@ -33,7 +33,7 @@
 	url = https://github.com/xiph/opus
 [submodule "Boost"]
 	path = app/libraries/boost
-	url = https://github.com/skyline-emu/boost.git
+	url = https://github.com/strato/boost.git
 	ignore = all
 [submodule "LLVM"]
 	path = app/libraries/llvm
@@ -47,7 +47,7 @@
 	url = https://github.com/yuzu-emu/sirit
 [submodule "Shader Compiler"]
 	path = app/libraries/shader-compiler
-	url = https://github.com/skyline-emu/shader-compiler.git
+	url = https://github.com/strato/shader-compiler.git
 [submodule "libadrenotools"]
 	path = app/libraries/adrenotools
 	url = https://github.com/bylaws/libadrenotools/
